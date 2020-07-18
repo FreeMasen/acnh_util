@@ -43,7 +43,7 @@ async fn main() {
                 Err(e) => reply_with_status(Response::Error(format!("Error updating fish: {}", e))),
             }
         });
-    let update_sea_creatures = post().and(warp::path!("update"/"bug"))
+    let update_sea_creatures = post().and(warp::path!("update"/"sea_creature"))
         .and(json())
         .and_then(|s: data::SeaCreature| async {
             match data::update_creature(s).await {

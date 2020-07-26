@@ -1,167 +1,167 @@
 import csv, sqlite3
 FISH = [
-    ["Bitterling",           900,"River",                "1",        "All day",                  "x","x","x","-","-","-","-","-","-","-","x","x"],
-    ["Pale chub",            200,"River",                "1",        "9 AM - 4 PM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Crucian carp",         160,"River",                "2",        "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Dace",                 240,"River",                "3",        "4 PM - 9 AM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Carp",                 300,"Pond",                 "4",        "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Koi",                 4000,"Pond",                 "4",        "4 PM - 9 AM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Goldfish",            1300,"Pond",                 "1",        "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Pop-eyed goldfish",   1300,"Pond",                 "1",        "9 AM - 4 PM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Ranchu goldfish",     4500,"Pond",                 "2",        "9 AM - 4 PM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Killifish",            300,"Pond",                 "1",        "All day",                  "-","-","-","x","x","x","x","x","-","-","-","-"],
-    ["Crawfish",             200,"Pond",                 "2",        "All day",                  "-","-","-","x","x","x","x","x","x","-","-","-"],
-    ["Soft-shelled turtle", 3750,"River",                "4",        "4 PM - 9 AM",              "-","-","-","-","-","-","-","x","x","-","-","-"],
-    ["Snapping Turtle",     5000,"River",                "4",        "9 PM - 4 AM",              "-","-","-","x","x","x","x","x","x","x","-","-"],
-    ["Tadpole",              100,"Pond",                 "1",        "All day",                  "-","-","x","x","x","x","x","-","-","-","-","-"],
-    ["Frog",                 120,"Pond",                 "2",        "All day",                  "-","-","-","-","x","x","x","x","-","-","-","-"],
-    ["Freshwater goby",      400,"River",                "2",        "4 PM - 9 AM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Loach",                400,"River",                "2",        "All day",                  "-","-","x","x","x","-","-","-","-","-","-","-"],
-    ["Catfish",              800,"Pond",                 "4",        "4 PM - 9 AM",              "-","-","-","-","x","x","x","x","x","x","-","-"],
-    ["Giant snakehead",     5500,"Pond",                 "4",        "9 AM - 4 PM",              "-","-","-","-","-","x","x","x","-","-","-","-"],
-    ["Bluegill",             180,"River",                "2",        "9 AM - 4 PM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Yellow perch",         300,"River",                "3",        "All day",                  "x","x","x","-","-","-","-","-","-","x","x","x"],
-    ["Black bass",           400,"River",                "4",        "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Tilapia",              800,"River",                "3",        "All day",                  "-","-","-","-","-","x","x","x","x","x","-","-"],
-    ["Pike",                1800,"River",                "5",        "All day",                  "-","-","-","-","-","-","-","-","x","x","x","x"],
-    ["Pond smelt",           500,"River",                "2",        "All day",                  "x","x","-","-","-","-","-","-","-","-","-","x"],
-    ["Sweetfish",            900,"River",                "3",        "All day",                  "-","-","-","-","-","-","x","x","x","-","-","-"],
-    ["Cherry salmon",       1000,"River (Clifftop)",     "3",        "4 PM - 9 AM",              "-","-","x","x","x","x","-","-","x","x","x","-"],
-    ["Char",                3800,"River (Clifftop) Pond","3",        "4 PM - 9 AM",              "-","-","x","x","x","x","-","-","x","x","x","-"],
-    ["Golden trout",       15000,"River (Clifftop)",     "3",        "4 PM - 9 AM",              "-","-","x","x","x","-","-","-","x","x","x","-"],
-    ["Stringfish",         15000,"River (Clifftop)",     "5",        "4 PM - 9 AM",              "x","x","x","-","-","-","-","-","-","-","-","x"],
-    ["Salmon",               700,"River (Mouth)",        "4",        "All day",                  "-","-","-","-","-","-","-","-","x","-","-","-"],
-    ["King salmon",         1800,"River (Mouth)",        "6",        "All day",                  "-","-","-","-","-","-","-","-","x","-","-","-"],
-    ["Mitten crab",         2000,"River",                "2",        "4 PM - 9 AM",              "-","-","-","-","-","-","-","-","x","x","x","-"],
-    ["Guppy",               1300,"River",                "1",        "9 AM - 4 PM",              "-","-","-","x","x","x","x","x","x","x","x","-"],
-    ["Nibble fish",         1500,"River",                "1",        "9 AM - 4 PM",              "-","-","-","-","x","x","x","x","x","-","-","-"],
-    ["Angelfish",           3000,"River",                "2",        "4 PM - 9 AM",              "-","-","-","-","x","x","x","x","x","x","-","-"],
-    ["Betta",               2500,"River",                "2",        "9 AM - 4 PM",              "-","-","-","-","x","x","x","x","x","x","-","-"],
-    ["Neon tetra",           500,"River",                "1",        "9 AM - 4 PM",              "-","-","-","x","x","x","x","x","x","x","x","-"],
-    ["Rainbowfish",          800,"River",                "1",        "9 AM - 4 PM",              "-","-","-","-","x","x","x","x","x","x","-","-"],
-    ["Piranha",             2500,"River",                "2",        "9 AM - 4 PM & 9 PM - 4 AM","-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Arowana",            10000,"River",                "4",        "4 PM - 9 AM",              "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Dorado",             15000,"River",                "5",        "4 AM - 9 PM",              "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Gar",                 6000,"Pond",                 "5",        "4 PM - 9 AM",              "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Arapaima",           10000,"River",                "6",        "4 PM - 9 AM",              "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Saddled bichir",      4000,"River",                "4",        "9 PM - 4 AM",              "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Sturgeon",           10000,"River (Mouth)",        "6",        "All day",                  "x","x","x","-","-","-","-","-","x","x","x","x"],
-    ["Sea butterfly",       1000,"Sea",                  "1",        "All day",                  "x","x","x","-","-","-","-","-","-","-","-","x"],
-    ["Sea horse",           1100,"Sea",                  "1",        "All day",                  "-","-","-","x","x","x","x","x","x","x","x","-"],
-    ["Clown fish",           650,"Sea",                  "1",        "All day",                  "-","-","-","x","x","x","x","x","x","-","-","-"],
-    ["Surgeonfish",         1000,"Sea",                  "2",        "All day",                  "-","-","-","x","x","x","x","x","x","-","-","-"],
-    ["Butterfly fish",      1000,"Sea",                  "2",        "All day",                  "-","-","-","x","x","x","x","x","x","-","-","-"],
-    ["Napoleonfish",       10000,"Sea",                  "6",        "4 AM - 9 PM",              "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Zebra turkeyfish",     500,"Sea",                  "3",        "All day",                  "-","-","-","x","x","x","x","x","x","x","x","-"],
-    ["Blowfish",            5000,"Sea",                  "3",        "9 PM - 4 AM",              "x","x","-","-","-","-","-","-","-","-","x","x"],
-    ["Puffer fish",          250,"Sea",                  "3",        "All day",                  "-","-","-","-","-","-","x","x","x","-","-","-"],
-    ["Anchovy",              200,"Sea",                  "2",        "4 AM - 9 PM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Horse mackerel",       150,"Sea",                  "2",        "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Barred knifejaw",     5000,"Sea",                  "3",        "All day",                  "-","-","x","x","x","x","x","x","x","x","x","-"],
-    ["Sea bass",             400,"Sea",                  "5",        "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Red snapper",         3000,"Sea",                  "4",        "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Dab",                  300,"Sea",                  "3",        "All day",                  "x","x","x","x","-","-","-","-","-","x","x","x"],
-    ["Olive flounder",       800,"Sea",                  "5",        "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Squid",                500,"Sea",                  "3",        "All day",                  "x","x","x","x","x","x","x","x","-","-","-","x"],
-    ["Moray eel",           2000,"Sea",                  "5 Narrow", "All day",                  "-","-","-","-","-","-","-","x","x","x","-","-"],
-    ["Ribbon eel",           600,"Sea",                  "5 Narrow", "All day",                  "-","-","-","-","-","x","x","x","x","x","-","-"],
-    ["Tuna",                7000,"Pier",                 "6",        "All day",                  "x","x","x","x","-","-","-","-","-","-","x","x"],
-    ["Blue marlin",        10000,"Pier",                 "6",        "All day",                  "x","x","x","x","-","-","x","x","x","-","x","x"],
-    ["Giant trevally",      4500,"Pier",                 "5",        "All day",                  "-","-","-","-","x","x","x","x","x","x","-","-"],
-    ["Mahi-mahi",           6000,"Pier",                 "5",        "All day",                  "-","-","-","-","x","x","x","x","x","x","-","-"],
-    ["Ocean sunfish",       4000,"Sea",                  "6 (Fin)",  "4 AM - 9 PM",              "-","-","-","-","-","-","x","x","x","-","-","-"],
-    ["Ray",                 3000,"Sea",                  "5",        "4 AM - 9 PM",              "-","-","-","-","-","-","-","x","x","x","x","-"],
-    ["Saw shark",          12000,"Sea",                  "6 (Fin)",  "4 PM - 9 AM",              "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Hammerhead shark",    8000,"Sea",                  "6 (Fin)",  "4 PM - 9 AM",              "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Great white shark",  15000,"Sea",                  "6 (Fin)",  "4 PM - 9 AM",              "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Whale shark",        13000,"Sea",                  "6 (Fin)",  "All day",                  "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Suckerfish",          1500,"Sea",                  "6 (Fin)",  "All day",                  "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Football fish",       2500,"Sea",                  "4",        "4 PM - 9 AM",              "x","x","x","-","-","-","-","-","-","-","x","x"],
-    ["Oarfish",             9000,"Sea",                  "6",        "All day",                  "x","x","x","x","x","-","-","-","-","-","-","x"],
-    ["Barreleye",          15000,"Sea",                  "2",        "9 PM - 4 AM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Coelacanth",         15000,"Sea",                  "6",        "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
+    {'name': "Bitterling",          'price':  900,'location': "River",                'size': "1",        'hours': "All day",                  'months':["x","x","x","-","-","-","-","-","-","-","x","x"]},
+    {'name': "Pale chub",           'price':  200,'location': "River",                'size': "1",        'hours': "9 AM - 4 PM",              'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Crucian carp",        'price':  160,'location': "River",                'size': "2",        'hours': "All day",                  'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Dace",                'price':  240,'location': "River",                'size': "3",        'hours': "4 PM - 9 AM",              'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Carp",                'price':  300,'location': "Pond",                 'size': "4",        'hours': "All day",                  'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Koi",                 'price': 4000,'location': "Pond",                 'size': "4",        'hours': "4 PM - 9 AM",              'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Goldfish",            'price': 1300,'location': "Pond",                 'size': "1",        'hours': "All day",                  'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Pop-eyed goldfish",   'price': 1300,'location': "Pond",                 'size': "1",        'hours': "9 AM - 4 PM",              'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Ranchu goldfish",     'price': 4500,'location': "Pond",                 'size': "2",        'hours': "9 AM - 4 PM",              'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Killifish",           'price':  300,'location': "Pond",                 'size': "1",        'hours': "All day",                  'months':["-","-","-","x","x","x","x","x","-","-","-","-"]},
+    {'name': "Crawfish",            'price':  200,'location': "Pond",                 'size': "2",        'hours': "All day",                  'months':["-","-","-","x","x","x","x","x","x","-","-","-"]},
+    {'name': "Soft-shelled turtle", 'price': 3750,'location': "River",                'size': "4",        'hours': "4 PM - 9 AM",              'months':["-","-","-","-","-","-","-","x","x","-","-","-"]},
+    {'name': "Snapping Turtle",     'price': 5000,'location': "River",                'size': "4",        'hours': "9 PM - 4 AM",              'months':["-","-","-","x","x","x","x","x","x","x","-","-"]},
+    {'name': "Tadpole",             'price':  100,'location': "Pond",                 'size': "1",        'hours': "All day",                  'months':["-","-","x","x","x","x","x","-","-","-","-","-"]},
+    {'name': "Frog",                'price':  120,'location': "Pond",                 'size': "2",        'hours': "All day",                  'months':["-","-","-","-","x","x","x","x","-","-","-","-"]},
+    {'name': "Freshwater goby",     'price':  400,'location': "River",                'size': "2",        'hours': "4 PM - 9 AM",              'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Loach",               'price':  400,'location': "River",                'size': "2",        'hours': "All day",                  'months':["-","-","x","x","x","-","-","-","-","-","-","-"]},
+    {'name': "Catfish",             'price':  800,'location': "Pond",                 'size': "4",        'hours': "4 PM - 9 AM",              'months':["-","-","-","-","x","x","x","x","x","x","-","-"]},
+    {'name': "Giant snakehead",     'price': 5500,'location': "Pond",                 'size': "4",        'hours': "9 AM - 4 PM",              'months':["-","-","-","-","-","x","x","x","-","-","-","-"]},
+    {'name': "Bluegill",            'price':  180,'location': "River",                'size': "2",        'hours': "9 AM - 4 PM",              'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Yellow perch",        'price':  300,'location': "River",                'size': "3",        'hours': "All day",                  'months':["x","x","x","-","-","-","-","-","-","x","x","x"]},
+    {'name': "Black bass",          'price':  400,'location': "River",                'size': "4",        'hours': "All day",                  'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Tilapia",             'price':  800,'location': "River",                'size': "3",        'hours': "All day",                  'months':["-","-","-","-","-","x","x","x","x","x","-","-"]},
+    {'name': "Pike",                'price': 1800,'location': "River",                'size': "5",        'hours': "All day",                  'months':["-","-","-","-","-","-","-","-","x","x","x","x"]},
+    {'name': "Pond smelt",          'price':  500,'location': "River",                'size': "2",        'hours': "All day",                  'months':["x","x","-","-","-","-","-","-","-","-","-","x"]},
+    {'name': "Sweetfish",           'price':  900,'location': "River",                'size': "3",        'hours': "All day",                  'months':["-","-","-","-","-","-","x","x","x","-","-","-"]},
+    {'name': "Cherry salmon",       'price': 1000,'location': "River (Clifftop)",     'size': "3",        'hours': "4 PM - 9 AM",              'months':["-","-","x","x","x","x","-","-","x","x","x","-"]},
+    {'name': "Char",                'price': 3800,'location': "River (Clifftop) Pond",'size': "3",        'hours': "4 PM - 9 AM",              'months':["-","-","x","x","x","x","-","-","x","x","x","-"]},
+    {'name': "Golden trout",        'price':15000,'location': "River (Clifftop)",     'size': "3",        'hours': "4 PM - 9 AM",              'months':["-","-","x","x","x","-","-","-","x","x","x","-"]},
+    {'name': "Stringfish",          'price':15000,'location': "River (Clifftop)",     'size': "5",        'hours': "4 PM - 9 AM",              'months':["x","x","x","-","-","-","-","-","-","-","-","x"]},
+    {'name': "Salmon",              'price':  700,'location': "River (Mouth)",        'size': "4",        'hours': "All day",                  'months':["-","-","-","-","-","-","-","-","x","-","-","-"]},
+    {'name': "King salmon",         'price': 1800,'location': "River (Mouth)",        'size': "6",        'hours': "All day",                  'months':["-","-","-","-","-","-","-","-","x","-","-","-"]},
+    {'name': "Mitten crab",         'price': 2000,'location': "River",                'size': "2",        'hours': "4 PM - 9 AM",              'months':["-","-","-","-","-","-","-","-","x","x","x","-"]},
+    {'name': "Guppy",               'price': 1300,'location': "River",                'size': "1",        'hours': "9 AM - 4 PM",              'months':["-","-","-","x","x","x","x","x","x","x","x","-"]},
+    {'name': "Nibble fish",         'price': 1500,'location': "River",                'size': "1",        'hours': "9 AM - 4 PM",              'months':["-","-","-","-","x","x","x","x","x","-","-","-"]},
+    {'name': "Angelfish",           'price': 3000,'location': "River",                'size': "2",        'hours': "4 PM - 9 AM",              'months':["-","-","-","-","x","x","x","x","x","x","-","-"]},
+    {'name': "Betta",               'price': 2500,'location': "River",                'size': "2",        'hours': "9 AM - 4 PM",              'months':["-","-","-","-","x","x","x","x","x","x","-","-"]},
+    {'name': "Neon tetra",          'price':  500,'location': "River",                'size': "1",        'hours': "9 AM - 4 PM",              'months':["-","-","-","x","x","x","x","x","x","x","x","-"]},
+    {'name': "Rainbowfish",         'price':  800,'location': "River",                'size': "1",        'hours': "9 AM - 4 PM",              'months':["-","-","-","-","x","x","x","x","x","x","-","-"]},
+    {'name': "Piranha",             'price': 2500,'location': "River",                'size': "2",        'hours': "9 AM - 4 PM & 9 PM - 4 AM",'months':["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Arowana",             'price':10000,'location': "River",                'size': "4",        'hours': "4 PM - 9 AM",              'months':["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Dorado",              'price':15000,'location': "River",                'size': "5",        'hours': "4 AM - 9 PM",              'months':["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Gar",                 'price': 6000,'location': "Pond",                 'size': "5",        'hours': "4 PM - 9 AM",              'months':["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Arapaima",            'price':10000,'location': "River",                'size': "6",        'hours': "4 PM - 9 AM",              'months':["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Saddled bichir",      'price': 4000,'location': "River",                'size': "4",        'hours': "9 PM - 4 AM",              'months':["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Sturgeon",            'price':10000,'location': "River (Mouth)",        'size': "6",        'hours': "All day",                  'months':["x","x","x","-","-","-","-","-","x","x","x","x"]},
+    {'name': "Sea butterfly",       'price': 1000,'location': "Sea",                  'size': "1",        'hours': "All day",                  'months':["x","x","x","-","-","-","-","-","-","-","-","x"]},
+    {'name': "Sea horse",           'price': 1100,'location': "Sea",                  'size': "1",        'hours': "All day",                  'months':["-","-","-","x","x","x","x","x","x","x","x","-"]},
+    {'name': "Clown fish",          'price':  650,'location': "Sea",                  'size': "1",        'hours': "All day",                  'months':["-","-","-","x","x","x","x","x","x","-","-","-"]},
+    {'name': "Surgeonfish",         'price': 1000,'location': "Sea",                  'size': "2",        'hours': "All day",                  'months':["-","-","-","x","x","x","x","x","x","-","-","-"]},
+    {'name': "Butterfly fish",      'price': 1000,'location': "Sea",                  'size': "2",        'hours': "All day",                  'months':["-","-","-","x","x","x","x","x","x","-","-","-"]},
+    {'name': "Napoleonfish",        'price':10000,'location': "Sea",                  'size': "6",        'hours': "4 AM - 9 PM",              'months':["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Zebra turkeyfish",    'price':  500,'location': "Sea",                  'size': "3",        'hours': "All day",                  'months':["-","-","-","x","x","x","x","x","x","x","x","-"]},
+    {'name': "Blowfish",            'price': 5000,'location': "Sea",                  'size': "3",        'hours': "9 PM - 4 AM",              'months':["x","x","-","-","-","-","-","-","-","-","x","x"]},
+    {'name': "Puffer fish",         'price':  250,'location': "Sea",                  'size': "3",        'hours': "All day",                  'months':["-","-","-","-","-","-","x","x","x","-","-","-"]},
+    {'name': "Anchovy",             'price':  200,'location': "Sea",                  'size': "2",        'hours': "4 AM - 9 PM",              'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Horse mackerel",      'price':  150,'location': "Sea",                  'size': "2",        'hours': "All day",                  'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Barred knifejaw",     'price': 5000,'location': "Sea",                  'size': "3",        'hours': "All day",                  'months':["-","-","x","x","x","x","x","x","x","x","x","-"]},
+    {'name': "Sea bass",            'price':  400,'location': "Sea",                  'size': "5",        'hours': "All day",                  'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Red snapper",         'price': 3000,'location': "Sea",                  'size': "4",        'hours': "All day",                  'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Dab",                 'price':  300,'location': "Sea",                  'size': "3",        'hours': "All day",                  'months':["x","x","x","x","-","-","-","-","-","x","x","x"]},
+    {'name': "Olive flounder",      'price':  800,'location': "Sea",                  'size': "5",        'hours': "All day",                  'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Squid",               'price':  500,'location': "Sea",                  'size': "3",        'hours': "All day",                  'months':["x","x","x","x","x","x","x","x","-","-","-","x"]},
+    {'name': "Moray eel",           'price': 2000,'location': "Sea",                  'size': "5 Narrow", 'hours': "All day",                  'months':["-","-","-","-","-","-","-","x","x","x","-","-"]},
+    {'name': "Ribbon eel",          'price':  600,'location': "Sea",                  'size': "5 Narrow", 'hours': "All day",                  'months':["-","-","-","-","-","x","x","x","x","x","-","-"]},
+    {'name': "Tuna",                'price': 7000,'location': "Pier",                 'size': "6",        'hours': "All day",                  'months':["x","x","x","x","-","-","-","-","-","-","x","x"]},
+    {'name': "Blue marlin",         'price':10000,'location': "Pier",                 'size': "6",        'hours': "All day",                  'months':["x","x","x","x","-","-","x","x","x","-","x","x"]},
+    {'name': "Giant trevally",      'price': 4500,'location': "Pier",                 'size': "5",        'hours': "All day",                  'months':["-","-","-","-","x","x","x","x","x","x","-","-"]},
+    {'name': "Mahi-mahi",           'price': 6000,'location': "Pier",                 'size': "5",        'hours': "All day",                  'months':["-","-","-","-","x","x","x","x","x","x","-","-"]},
+    {'name': "Ocean sunfish",       'price': 4000,'location': "Sea",                  'size': "6 (Fin)",  'hours': "4 AM - 9 PM",              'months':["-","-","-","-","-","-","x","x","x","-","-","-"]},
+    {'name': "Ray",                 'price': 3000,'location': "Sea",                  'size': "5",        'hours': "4 AM - 9 PM",              'months':["-","-","-","-","-","-","-","x","x","x","x","-"]},
+    {'name': "Saw shark",           'price':12000,'location': "Sea",                  'size': "6 (Fin)",  'hours': "4 PM - 9 AM",              'months':["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Hammerhead shark",    'price': 8000,'location': "Sea",                  'size': "6 (Fin)",  'hours': "4 PM - 9 AM",              'months':["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Great white shark",   'price':15000,'location': "Sea",                  'size': "6 (Fin)",  'hours': "4 PM - 9 AM",              'months':["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Whale shark",         'price':13000,'location': "Sea",                  'size': "6 (Fin)",  'hours': "All day",                  'months':["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Suckerfish",          'price': 1500,'location': "Sea",                  'size': "6 (Fin)",  'hours': "All day",                  'months':["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Football fish",       'price': 2500,'location': "Sea",                  'size': "4",        'hours': "4 PM - 9 AM",              'months':["x","x","x","-","-","-","-","-","-","-","x","x"]},
+    {'name': "Oarfish",             'price': 9000,'location': "Sea",                  'size': "6",        'hours': "All day",                  'months':["x","x","x","x","x","-","-","-","-","-","-","x"]},
+    {'name': "Barreleye",           'price':15000,'location': "Sea",                  'size': "2",        'hours': "9 PM - 4 AM",              'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Coelacanth",          'price':15000,'location': "Sea",                  'size': "6",        'hours': "All day",                  'months':["x","x","x","x","x","x","x","x","x","x","x","x"]},
 ]
 BUGS = [
-    ["Common butterfly",           160,"Flying",                            "4 AM - 7 PM",              "x","x","x","x","x","x","-","-","x","x","x","x"],
-    ["Yellow butterfly",           160,"Flying",                            "4 AM - 7 PM",              "-","-","x","x","x","x","-","-","x","x","-","-"],
-    ["Tiger butterfly",            240,"Flying",                            "4 AM - 7 PM",              "-","-","x","x","x","x","x","x","x","-","-","-"],
-    ["Peacock butterfly",         2500,"Flying by Hybrid Flowers",          "4 AM - 7 PM",              "-","-","x","x","x","x","-","-","-","-","-","-"],
-    ["Common bluebottle",          300,"Flying",                            "4 AM - 7 PM",              "-","-","-","x","x","x","x","x","-","-","-","-"],
-    ["Paper kite butterfly",      1000,"Flying",                            "8 AM - 7 PM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Great purple emperor",      3000,"Flying",                            "4 AM - 7 PM",              "-","-","-","-","x","x","x","x","-","-","-","-"],
-    ["Monarch butterfly",          140,"Flying",                            "4 AM - 5 PM",              "-","-","-","-","-","-","-","-","x","x","x","-"],
-    ["Emperor butterfly",         4000,"Flying",                            "5 PM - 8 AM",              "x","x","x","-","-","x","x","x","x","-","-","x"],
-    ["Agrias butterfly",          3000,"Flying",                            "8 AM - 5 PM",              "-","-","-","x","x","x","x","x","x","-","-","-"],
-    ["Rajah Brooke's birdwing",   2500,"Flying",                            "8 AM - 5 PM",              "x","x","-","x","x","x","x","x","x","-","-","x"],
-    ["Queen Alexandra's birdwing",4000,"Flying",                            "8 AM - 4 PM",              "-","-","-","-","x","x","x","x","x","-","-","-"],
-    ["Moth",                       130,"Flying by Light",                   "7 PM - 4 AM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Atlas moth",                3000,"On Trees",                          "7 PM - 4 AM",              "-","-","-","x","x","x","x","x","x","-","-","-"],
-    ["Madagascan sunset moth",    2500,"Flying",                            "8 AM - 4 PM",              "-","-","-","x","x","x","x","x","x","-","-","-"],
-    ["Long locust",                200,"On the Ground",                     "8 AM - 7 PM",              "-","-","-","x","x","x","x","x","x","x","x","-"],
-    ["Migratory locust",           600,"On the Ground",                     "8 AM - 7 PM",              "-","-","-","-","-","-","-","x","x","x","x","-"],
-    ["Rice grasshopper",           160,"On the Ground",                     "8 AM - 7 PM",              "-","-","-","-","-","-","-","x","x","x","x","-"],
-    ["Grasshopper",                160,"On the Ground",                     "8 AM - 5 PM",              "-","-","-","-","-","-","x","x","x","-","-","-"],
-    ["Cricket",                    130,"On the Ground",                     "5 PM - 8 AM",              "-","-","-","-","-","-","-","-","x","x","x","-"],
-    ["Bell cricket",               430,"On the Ground",                     "5 PM - 8 AM",              "-","-","-","-","-","-","-","-","x","x","-","-"],
-    ["Mantis",                     430,"On Flowers",                        "8 AM - 5 PM",              "-","-","x","x","x","x","x","x","x","x","x","-"],
-    ["Orchid mantis",             2400,"On Flowers (White)",                "8 AM - 5 PM",              "-","-","x","x","x","x","x","x","x","x","x","-"],
-    ["Honeybee",                   200,"Flying",                            "8 AM - 5 PM",              "-","-","x","x","x","x","x","-","-","-","-","-"],
-    ["Wasp",                      2500,"Shaking Trees",                     "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Brown cicada",               250,"On Trees",                          "8 AM - 5 PM",              "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Robust cicada",              300,"On Trees",                          "8 AM - 5 PM",              "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Giant cicada",               500,"On Trees",                          "8 AM - 5 PM",              "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Walker cicada",              400,"On Trees",                          "8 AM - 5 PM",              "-","-","-","-","-","-","-","x","x","-","-","-"],
-    ["Evening cicada",             550,"On Trees",                          "4 AM - 8 AM & 4 PM - 7 PM","-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Cicada shell",                10,"On Trees",                          "All day",                  "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Red dragonfly",              180,"Flying",                            "8 AM - 7 PM",              "-","-","-","-","-","-","-","-","x","x","-","-"],
-    ["Darner dragonfly",           230,"Flying",                            "8 AM - 5 PM",              "-","-","-","x","x","x","x","x","x","x","-","-"],
-    ["Banded dragonfly",          4500,"Flying",                            "8 AM - 5 PM",              "-","-","-","-","x","x","x","x","x","x","-","-"],
-    ["Damselfly",                  500,"Flying",                            "All day",                  "x","x","-","-","-","-","-","-","-","-","x","x"],
-    ["Firefly",                    300,"Flying",                            "7 PM - 4 AM",              "-","-","-","-","-","x","-","-","-","-","-","-"],
-    ["Mole cricket",               500,"Underground",                       "All day",                  "x","x","x","x","x","-","-","-","-","-","x","x"],
-    ["Pondskater",                 130,"On Ponds and Rivers",               "8 AM - 7 PM",              "-","-","-","-","x","x","x","x","x","-","-","-"],
-    ["Diving beetle",              800,"On Ponds and Rivers",               "8 AM - 7 PM",              "-","-","-","-","x","x","x","x","x","-","-","-"],
-    ["Giant water bug",           2000,"On Ponds and Rivers",               "7 PM - 8 AM",              "-","-","-","x","x","x","x","x","x","-","-","-"],
-    ["Stinkbug",                   120,"On Flowers",                        "All day",                  "-","-","x","x","x","x","x","x","x","x","-","-"],
-    ["Man-faced stink bug",       1000,"On Flowers",                        "7 PM - 8 AM",              "-","-","x","x","x","x","x","x","x","x","-","-"],
-    ["Ladybug",                    200,"On Flowers",                        "8 AM - 5 PM",              "-","-","x","x","x","x","-","-","-","x","-","-"],
-    ["Tiger beetle",              1500,"On the Ground",                     "All day",                  "-","x","x","x","x","x","x","x","x","x","-","-"],
-    ["Jewel beetle",              2400,"On Tree Stumps",                    "All day",                  "-","-","-","x","x","x","x","x","-","-","-","-"],
-    ["Violin beetle",              450,"On Tree Stumps",                    "All day",                  "-","-","-","-","x","x","-","-","x","x","x","-"],
-    ["Citrus long-horned beetle",  350,"On Tree Stumps",                    "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Rosalia batesi beetle",     3000,"On Tree Stumps",                    "All day",                  "-","-","-","-","x","x","x","x","x","-","-","-"],
-    ["Blue weevil beetle",         800,"On Trees (Coconut)",                "All day",                  "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Dung beetle",               3000,"On the Ground (rolling snowballs)", "All day",                  "x","x","-","-","-","-","-","-","-","-","-","x"],
-    ["Earth-boring dung beetle",   300,"On the Ground",                     "All day",                  "-","-","-","-","-","-","x","x","x","-","-","-"],
-    ["Scarab beetle",            10000,"On Trees",                          "11 PM - 8 AM",             "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Drone beetle",               200,"On Trees",                          "All day",                  "-","-","-","-","-","x","x","x","-","-","-","-"],
-    ["Goliath beetle",            8000,"On Trees (Coconut)",                "5 PM - 8 AM",              "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Saw stag",                  2000,"On Trees",                          "All day",                  "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Miyama stag",               1000,"On Trees",                          "All day",                  "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Giant stag",               10000,"On Trees",                          "11 PM - 8 AM",             "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Rainbow stag",              6000,"On Trees",                          "7 PM - 8 AM",              "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Cyclommatus stag",          8000,"On Trees (Coconut)",                "5 PM - 8 AM",              "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Golden stag",              12000,"On Trees (Coconut)",                "5 PM - 8 AM",              "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Giraffe stag",             12000,"On Trees (Coconut)",                "5 PM - 8 AM",              "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Horned dynastid",           1350,"On Trees",                          "5 PM - 8 AM",              "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Horned atlas",              8000,"On Trees (Coconut)",                "5 PM - 8 AM",              "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Horned elephant",           8000,"On Trees (Coconut)",                "5 PM - 8 AM",              "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Horned hercules",          12000,"On Trees (Coconut)",                "5 PM - 8 AM",              "-","-","-","-","-","-","x","x","-","-","-","-"],
-    ["Walking stick",              600,"On Trees",                          "4 AM - 8 AM & 5 PM - 7 PM","-","-","-","-","-","-","x","x","x","x","x","-"],
-    ["Walking leaf",               600,"Under Trees Disguised as Leaves",   "All day",                  "-","-","-","-","-","-","x","x","x","-","-","-"],
-    ["Bagworm",                    600,"Shaking Trees",                     "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Ant",                         80,"On rotten food",                    "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Hermit crab",               1000,"Beach disguised as Shells",         "7 PM - 8 AM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Wharf roach",                200,"On Beach Rocks",                    "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Fly",                         60,"On Trash Items",                    "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Mosquito",                   130,"Flying",                            "5 PM - 4 AM",              "-","-","-","-","-","x","x","x","x","-","-","-"],
-    ["Flea",                        70,"Villager's Heads",                  "All day",                  "-","-","-","x","x","x","x","x","x","x","x","-"],
-    ["Snail",                      250,"On Rocks and Bushes (Rain)",        "All day",                  "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Pill bug",                   250,"Hitting Rocks",                     "11 PM - 4 PM",             "x","x","x","x","x","x","-","-","x","x","x","x"],
-    ["Centipede",                  300,"Hitting Rocks",                     "4 PM - 11 PM",             "x","x","x","x","x","x","-","-","x","x","x","x"],
-    ["Spider",                     600,"Shaking Trees",                     "7 PM - 8 AM",              "x","x","x","x","x","x","x","x","x","x","x","x"],
-    ["Tarantula",                 8000,"On the Ground",                     "7 PM - 4 AM",              "x","x","x","x","-","-","-","-","-","-","x","x"],
-    ["Scorpion",                  8000,"On the Ground",                     "7 PM - 4 AM",              "-","-","-","-","x","x","x","x","x","x","-","-"],
+    {'name': "Common butterfly",          'price':  160, 'location': "Flying",                            'hours': "4 AM - 7 PM",              'months': ["x","x","x","x","x","x","-","-","x","x","x","x"]},
+    {'name': "Yellow butterfly",          'price':  160, 'location': "Flying",                            'hours': "4 AM - 7 PM",              'months': ["-","-","x","x","x","x","-","-","x","x","-","-"]},
+    {'name': "Tiger butterfly",           'price':  240, 'location': "Flying",                            'hours': "4 AM - 7 PM",              'months': ["-","-","x","x","x","x","x","x","x","-","-","-"]},
+    {'name': "Peacock butterfly",         'price': 2500, 'location': "Flying by Hybrid Flowers",          'hours': "4 AM - 7 PM",              'months': ["-","-","x","x","x","x","-","-","-","-","-","-"]},
+    {'name': "Common bluebottle",         'price':  300, 'location': "Flying",                            'hours': "4 AM - 7 PM",              'months': ["-","-","-","x","x","x","x","x","-","-","-","-"]},
+    {'name': "Paper kite butterfly",      'price': 1000, 'location': "Flying",                            'hours': "8 AM - 7 PM",              'months': ["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Great purple emperor",      'price': 3000, 'location': "Flying",                            'hours': "4 AM - 7 PM",              'months': ["-","-","-","-","x","x","x","x","-","-","-","-"]},
+    {'name': "Monarch butterfly",         'price':  140, 'location': "Flying",                            'hours': "4 AM - 5 PM",              'months': ["-","-","-","-","-","-","-","-","x","x","x","-"]},
+    {'name': "Emperor butterfly",         'price': 4000, 'location': "Flying",                            'hours': "5 PM - 8 AM",              'months': ["x","x","x","-","-","x","x","x","x","-","-","x"]},
+    {'name': "Agrias butterfly",          'price': 3000, 'location': "Flying",                            'hours': "8 AM - 5 PM",              'months': ["-","-","-","x","x","x","x","x","x","-","-","-"]},
+    {'name': "Rajah Brooke's birdwing",   'price': 2500, 'location': "Flying",                            'hours': "8 AM - 5 PM",              'months': ["x","x","-","x","x","x","x","x","x","-","-","x"]},
+    {'name': "Queen Alexandra's birdwing",'price': 4000, 'location': "Flying",                            'hours': "8 AM - 4 PM",              'months': ["-","-","-","-","x","x","x","x","x","-","-","-"]},
+    {'name': "Moth",                      'price':  130, 'location': "Flying by Light",                   'hours': "7 PM - 4 AM",              'months': ["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Atlas moth",                'price': 3000, 'location': "On Trees",                          'hours': "7 PM - 4 AM",              'months': ["-","-","-","x","x","x","x","x","x","-","-","-"]},
+    {'name': "Madagascan sunset moth",    'price': 2500, 'location': "Flying",                            'hours': "8 AM - 4 PM",              'months': ["-","-","-","x","x","x","x","x","x","-","-","-"]},
+    {'name': "Long locust",               'price':  200, 'location': "On the Ground",                     'hours': "8 AM - 7 PM",              'months': ["-","-","-","x","x","x","x","x","x","x","x","-"]},
+    {'name': "Migratory locust",          'price':  600, 'location': "On the Ground",                     'hours': "8 AM - 7 PM",              'months': ["-","-","-","-","-","-","-","x","x","x","x","-"]},
+    {'name': "Rice grasshopper",          'price':  160, 'location': "On the Ground",                     'hours': "8 AM - 7 PM",              'months': ["-","-","-","-","-","-","-","x","x","x","x","-"]},
+    {'name': "Grasshopper",               'price':  160, 'location': "On the Ground",                     'hours': "8 AM - 5 PM",              'months': ["-","-","-","-","-","-","x","x","x","-","-","-"]},
+    {'name': "Cricket",                   'price':  130, 'location': "On the Ground",                     'hours': "5 PM - 8 AM",              'months': ["-","-","-","-","-","-","-","-","x","x","x","-"]},
+    {'name': "Bell cricket",              'price':  430, 'location': "On the Ground",                     'hours': "5 PM - 8 AM",              'months': ["-","-","-","-","-","-","-","-","x","x","-","-"]},
+    {'name': "Mantis",                    'price':  430, 'location': "On Flowers",                        'hours': "8 AM - 5 PM",              'months': ["-","-","x","x","x","x","x","x","x","x","x","-"]},
+    {'name': "Orchid mantis",             'price': 2400, 'location': "On Flowers (White)",                'hours': "8 AM - 5 PM",              'months': ["-","-","x","x","x","x","x","x","x","x","x","-"]},
+    {'name': "Honeybee",                  'price':  200, 'location': "Flying",                            'hours': "8 AM - 5 PM",              'months': ["-","-","x","x","x","x","x","-","-","-","-","-"]},
+    {'name': "Wasp",                      'price': 2500, 'location': "Shaking Trees",                     'hours': "All day",                  'months': ["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Brown cicada",              'price':  250, 'location': "On Trees",                          'hours': "8 AM - 5 PM",              'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Robust cicada",             'price':  300, 'location': "On Trees",                          'hours': "8 AM - 5 PM",              'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Giant cicada",              'price':  500, 'location': "On Trees",                          'hours': "8 AM - 5 PM",              'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Walker cicada",             'price':  400, 'location': "On Trees",                          'hours': "8 AM - 5 PM",              'months': ["-","-","-","-","-","-","-","x","x","-","-","-"]},
+    {'name': "Evening cicada",            'price':  550, 'location': "On Trees",                          'hours': "4 AM - 8 AM & 4 PM - 7 PM",'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Cicada shell",              'price':   10, 'location': "On Trees",                          'hours': "All day",                  'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Red dragonfly",             'price':  180, 'location': "Flying",                            'hours': "8 AM - 7 PM",              'months': ["-","-","-","-","-","-","-","-","x","x","-","-"]},
+    {'name': "Darner dragonfly",          'price':  230, 'location': "Flying",                            'hours': "8 AM - 5 PM",              'months': ["-","-","-","x","x","x","x","x","x","x","-","-"]},
+    {'name': "Banded dragonfly",          'price': 4500, 'location': "Flying",                            'hours': "8 AM - 5 PM",              'months': ["-","-","-","-","x","x","x","x","x","x","-","-"]},
+    {'name': "Damselfly",                 'price':  500, 'location': "Flying",                            'hours': "All day",                  'months': ["x","x","-","-","-","-","-","-","-","-","x","x"]},
+    {'name': "Firefly",                   'price':  300, 'location': "Flying",                            'hours': "7 PM - 4 AM",              'months': ["-","-","-","-","-","x","-","-","-","-","-","-"]},
+    {'name': "Mole cricket",              'price':  500, 'location': "Underground",                       'hours': "All day",                  'months': ["x","x","x","x","x","-","-","-","-","-","x","x"]},
+    {'name': "Pondskater",                'price':  130, 'location': "On Ponds and Rivers",               'hours': "8 AM - 7 PM",              'months': ["-","-","-","-","x","x","x","x","x","-","-","-"]},
+    {'name': "Diving beetle",             'price':  800, 'location': "On Ponds and Rivers",               'hours': "8 AM - 7 PM",              'months': ["-","-","-","-","x","x","x","x","x","-","-","-"]},
+    {'name': "Giant water bug",           'price': 2000, 'location': "On Ponds and Rivers",               'hours': "7 PM - 8 AM",              'months': ["-","-","-","x","x","x","x","x","x","-","-","-"]},
+    {'name': "Stinkbug",                  'price':  120, 'location': "On Flowers",                        'hours': "All day",                  'months': ["-","-","x","x","x","x","x","x","x","x","-","-"]},
+    {'name': "Man-faced stink bug",       'price': 1000, 'location': "On Flowers",                        'hours': "7 PM - 8 AM",              'months': ["-","-","x","x","x","x","x","x","x","x","-","-"]},
+    {'name': "Ladybug",                   'price':  200, 'location': "On Flowers",                        'hours': "8 AM - 5 PM",              'months': ["-","-","x","x","x","x","-","-","-","x","-","-"]},
+    {'name': "Tiger beetle",              'price': 1500, 'location': "On the Ground",                     'hours': "All day",                  'months': ["-","x","x","x","x","x","x","x","x","x","-","-"]},
+    {'name': "Jewel beetle",              'price': 2400, 'location': "On Tree Stumps",                    'hours': "All day",                  'months': ["-","-","-","x","x","x","x","x","-","-","-","-"]},
+    {'name': "Violin beetle",             'price':  450, 'location': "On Tree Stumps",                    'hours': "All day",                  'months': ["-","-","-","-","x","x","-","-","x","x","x","-"]},
+    {'name': "Citrus long-horned beetle", 'price':  350, 'location': "On Tree Stumps",                    'hours': "All day",                  'months': ["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Rosalia batesi beetle",     'price': 3000, 'location': "On Tree Stumps",                    'hours': "All day",                  'months': ["-","-","-","-","x","x","x","x","x","-","-","-"]},
+    {'name': "Blue weevil beetle",        'price':  800, 'location': "On Trees (Coconut)",                'hours': "All day",                  'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Dung beetle",               'price': 3000, 'location': "On the Ground (rolling snowballs)", 'hours': "All day",                  'months': ["x","x","-","-","-","-","-","-","-","-","-","x"]},
+    {'name': "Earth-boring dung beetle",  'price':  300, 'location': "On the Ground",                     'hours': "All day",                  'months': ["-","-","-","-","-","-","x","x","x","-","-","-"]},
+    {'name': "Scarab beetle",            'price': 10000, 'location': "On Trees",                          'hours': "11 PM - 8 AM",             'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Drone beetle",              'price':  200, 'location': "On Trees",                          'hours': "All day",                  'months': ["-","-","-","-","-","x","x","x","-","-","-","-"]},
+    {'name': "Goliath beetle",            'price': 8000, 'location': "On Trees (Coconut)",                'hours': "5 PM - 8 AM",              'months': ["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Saw stag",                  'price': 2000, 'location': "On Trees",                          'hours': "All day",                  'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Miyama stag",               'price': 1000, 'location': "On Trees",                          'hours': "All day",                  'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Giant stag",               'price': 10000, 'location': "On Trees",                          'hours': "11 PM - 8 AM",             'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Rainbow stag",              'price': 6000, 'location': "On Trees",                          'hours': "7 PM - 8 AM",              'months': ["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Cyclommatus stag",          'price': 8000, 'location': "On Trees (Coconut)",                'hours': "5 PM - 8 AM",              'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Golden stag",              'price': 12000, 'location': "On Trees (Coconut)",                'hours': "5 PM - 8 AM",              'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Giraffe stag",             'price': 12000, 'location': "On Trees (Coconut)",                'hours': "5 PM - 8 AM",              'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Horned dynastid",           'price': 1350, 'location': "On Trees",                          'hours': "5 PM - 8 AM",              'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Horned atlas",              'price': 8000, 'location': "On Trees (Coconut)",                'hours': "5 PM - 8 AM",              'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Horned elephant",           'price': 8000, 'location': "On Trees (Coconut)",                'hours': "5 PM - 8 AM",              'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Horned hercules",          'price': 12000, 'location': "On Trees (Coconut)",                'hours': "5 PM - 8 AM",              'months': ["-","-","-","-","-","-","x","x","-","-","-","-"]},
+    {'name': "Walking stick",             'price':  600, 'location': "On Trees",                          'hours': "4 AM - 8 AM & 5 PM - 7 PM",'months': ["-","-","-","-","-","-","x","x","x","x","x","-"]},
+    {'name': "Walking leaf",              'price':  600, 'location': "Under Trees Disguised as Leaves",   'hours': "All day",                  'months': ["-","-","-","-","-","-","x","x","x","-","-","-"]},
+    {'name': "Bagworm",                   'price':  600, 'location': "Shaking Trees",                     'hours': "All day",                  'months': ["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Ant",                       'price':   80, 'location': "On rotten food",                    'hours': "All day",                  'months': ["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Hermit crab",               'price': 1000, 'location': "Beach disguised as Shells",         'hours': "7 PM - 8 AM",              'months': ["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Wharf roach",               'price':  200, 'location': "On Beach Rocks",                    'hours': "All day",                  'months': ["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Fly",                       'price':   60, 'location': "On Trash Items",                    'hours': "All day",                  'months': ["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Mosquito",                  'price':  130, 'location': "Flying",                            'hours': "5 PM - 4 AM",              'months': ["-","-","-","-","-","x","x","x","x","-","-","-"]},
+    {'name': "Flea",                      'price':   70, 'location': "Villager's Heads",                  'hours': "All day",                  'months': ["-","-","-","x","x","x","x","x","x","x","x","-"]},
+    {'name': "Snail",                     'price':  250, 'location': "On Rocks and Bushes (Rain)",        'hours': "All day",                  'months': ["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Pill bug",                  'price':  250, 'location': "Hitting Rocks",                     'hours': "11 PM - 4 PM",             'months': ["x","x","x","x","x","x","-","-","x","x","x","x"]},
+    {'name': "Centipede",                 'price':  300, 'location': "Hitting Rocks",                     'hours': "4 PM - 11 PM",             'months': ["x","x","x","x","x","x","-","-","x","x","x","x"]},
+    {'name': "Spider",                    'price':  600, 'location': "Shaking Trees",                     'hours': "7 PM - 8 AM",              'months': ["x","x","x","x","x","x","x","x","x","x","x","x"]},
+    {'name': "Tarantula",                 'price': 8000, 'location': "On the Ground",                     'hours': "7 PM - 4 AM",              'months': ["x","x","x","x","-","-","-","-","-","-","x","x"]},
+    {'name': "Scorpion",                  'price': 8000, 'location': "On the Ground",                     'hours': "7 PM - 4 AM",              'months': ["-","-","-","-","x","x","x","x","x","x","-","-"]},
 ]
 MONTHS = [
     1,
@@ -179,106 +179,142 @@ MONTHS = [
 ]
 
 CREATURES = [
-    ['Seaweed',               600,'Large', 'Stationary','All day',              'x','x','x','x','x','x','x','-','-','x','x','x'],
-    ['Sea grapes',            900,'Small', 'Stationary','All day',              '-','-','-','-','-','x','x','x','x','-','-','-'],
-    ['Sea cucumber',          500,'Medium','Very slow', 'All day',              'x','x','x','x','-','-','-','-','-','-','x','x'],
-    ['Sea pig',             10000,'Small', 'Very fast', '4pm - 9am',            'x','x','-','-','-','-','-','-','-','-','x','x'],
-    ['Sea star',              500,'Small', 'Very slow', 'All day',              'x','x','x','x','x','x','x','x','x','x','x','x'],
-    ['Sea urchin',           1700,'Small', 'Slow',      'All day',              '-','-','-','-','x','x','x','x','x','-','-','-'],
-    ['Slate pencil urchin',  2000,'Medium','Medium',    '4pm - 9am',            '-','-','-','-','x','x','x','x','x','-','-','-'],
-    ['Sea anemone',           500,'Large', 'Stationary','All day',              'x','x','x','x','x','x','x','x','x','x','x','x'],
-    ['Moon jellyfish',        600,'Small', 'Very slow', 'All day',              '-','-','-','-','-','-','x','x','x','-','-','-'],
-    ['Sea slug',              600,'Tiny',  'Very slow', 'All day',              'x','x','x','x','x','x','x','x','x','x','x','x'],
-    ['Pearl oyster',         2800,'Small', 'Medium',    'All day',              'x','x','x','x','x','x','x','x','x','x','x','x'],
-    ['Mussel',               1500,'Small', 'Slow',      'All day',              '-','-','-','-','-','x','x','x','x','x','x','x'],
-    ['Oyster',               1100,'Small', 'Slow',      'All day',              'x','x','-','-','-','-','-','-','x','x','x','x'],
-    ['Scallop',              1200,'Medium','Slow',      'All day',              'x','x','x','x','x','x','x','x','x','x','x','x'],
-    ['Whelk',                1000,'Small', 'Slow',      'All day',              'x','x','x','x','x','x','x','x','x','x','x','x'],
-    ['Turban shell',         1000,'Small', 'Slow',      'All day',              '-','-','x','x','x','-','-','-','x','x','x','x'],
-    ['Abalone',              2000,'Medium','Medium',    '4pm - 9am',            'x','-','-','-','-','x','x','x','x','x','x','x'],
-    ['Gigas giant clam',    15000,'Huge',  'Very fast', 'All day',              '-','-','-','-','x','x','x','x','x','-','-','-'],
-    ['Chambered nautilus',   1800,'Medium','Medium',    '4pm - 9am',            '-','-','x','x','x','x','-','-','x','x','x','-'],
-    ['Octopus',              1200,'Medium','Slow',      'All day',              'x','x','x','x','x','x','x','x','x','x','x','x'],
-    ['Umbrella octopus',     6000,'Small', 'Fast',      'All day',              '-','-','x','x','x','-','-','-','x','x','x','-'],
-    ['Vampire squid',       10000,'Medium','Very fast', '4pm - 9am',            '-','-','-','-','x','x','x','x','-','-','-','-'],
-    ['Firefly squid',        1400,'Tiny',  'Slow',      '9pm - 4am',            '-','-','x','x','x','x','-','-','-','-','-','-'],
-    ['Gazami crab',          2200,'Medium','Medium',    'All day',              '-','-','-','-','-','x','x','x','x','x','x','-'],
-    ['Dungeness crab',       1900,'Medium','Medium',    'All day',              'x','x','x','x','x','-','-','-','-','-','x','x'],
-    ['Snow crab',            6000,'Large', 'Fast',      'All day',              'x','x','x','x','-','-','-','-','-','-','x','x'],
-    ['Red king crab',        8000,'Large', 'Very fast', 'All day',              'x','x','x','-','-','-','-','-','-','-','x','x'],
-    ['Acorn barnacle',        600,'Tiny',  'Stationary','All day',              'x','x','x','x','x','x','x','x','x','x','x','x'],
-    ['Spider crab',         12000,'Huge',  'Very fast', 'All day',              '-','-','x','x','-','-','-','-','-','-','-','-'],
-    ['Tiger prawn',          3000,'Small', 'Medium',    '4pm - 9am',            '-','-','-','-','-','x','x','x','x','-','-','-'],
-    ['Sweet shrimp',         1400,'Small', 'Slow',      '4pm - 9am',            'x','x','-','-','-','-','-','-','x','x','x','x'],
-    ['Mantis shrimp',        2500,'Small', 'Medium',    '4pm - 9am',            'x','x','x','x','x','x','x','x','x','x','x','x'],
-    ['Spiny lobster',        5000,'Large', 'Fast',      '9pm - 4am',            '-','-','-','-','-','-','-','-','-','x','x','x'],
-    ['Lobster',              4500,'Large', 'Fast',      'All day',              'x','-','-','x','x','x','-','-','-','-','-','x'],
-    ['Giant isopod',        12000,'Medium','Very fast', '9am - 4pm & 9pm - 4am','-','-','-','-','-','-','x','x','x','x','-','-'],
-    ['Horseshoe Crab',       2500,'Medium','Medium',    '9pm - 4am',            '-','-','-','-','-','-','x','x','x','-','-','-'],
-    ['Sea pineapple',        1500,'Small', 'Slow',      'All day',              '-','-','-','x','x','x','x','x','-','-','-','-'],
-    ['Spotted garden eel',   1100,'Small', 'Slow',      '4am - 9pm',            '-','-','-','-','x','x','x','x','x','x','-','-'],
-    ['Flatworm',              700,'Tiny',  'Very slow', '4pm - 9am',            '-','-','-','-','-','-','-','x','x','-','-','-'],
-    ['Venus flower basket',  5000,'Medium','Fast',      'All day',              'x','x','-','-','-','-','-','-','-','x','x','x']
+    {'name': 'Seaweed',             'price':   600, 'size': 'Large', 'speed':  'Stationary','hours': 'All day',              'months': ['x','x','x','x','x','x','x','-','-','x','x','x']},
+    {'name': 'Sea grapes',          'price':   900, 'size': 'Small', 'speed':  'Stationary','hours': 'All day',              'months': ['-','-','-','-','-','x','x','x','x','-','-','-']},
+    {'name': 'Sea cucumber',        'price':   500, 'size': 'Medium', 'speed': 'Very slow', 'hours': 'All day',              'months': ['x','x','x','x','-','-','-','-','-','-','x','x']},
+    {'name': 'Sea pig',             'price': 10000, 'size': 'Small', 'speed':  'Very fast', 'hours': '4pm - 9am',            'months': ['x','x','-','-','-','-','-','-','-','-','x','x']},
+    {'name': 'Sea star',            'price':   500, 'size': 'Small', 'speed':  'Very slow', 'hours': 'All day',              'months': ['x','x','x','x','x','x','x','x','x','x','x','x']},
+    {'name': 'Sea urchin',          'price':  1700, 'size': 'Small', 'speed':  'Slow',      'hours': 'All day',              'months': ['-','-','-','-','x','x','x','x','x','-','-','-']},
+    {'name': 'Slate pencil urchin', 'price':  2000, 'size': 'Medium', 'speed': 'Medium',    'hours': '4pm - 9am',            'months': ['-','-','-','-','x','x','x','x','x','-','-','-']},
+    {'name': 'Sea anemone',         'price':   500, 'size': 'Large', 'speed':  'Stationary','hours': 'All day',              'months': ['x','x','x','x','x','x','x','x','x','x','x','x']},
+    {'name': 'Moon jellyfish',      'price':   600, 'size': 'Small', 'speed':  'Very slow', 'hours': 'All day',              'months': ['-','-','-','-','-','-','x','x','x','-','-','-']},
+    {'name': 'Sea slug',            'price':   600, 'size': 'Tiny', 'speed':   'Very slow', 'hours': 'All day',              'months': ['x','x','x','x','x','x','x','x','x','x','x','x']},
+    {'name': 'Pearl oyster',        'price':  2800, 'size': 'Small', 'speed':  'Medium',    'hours': 'All day',              'months': ['x','x','x','x','x','x','x','x','x','x','x','x']},
+    {'name': 'Mussel',              'price':  1500, 'size': 'Small', 'speed':  'Slow',      'hours': 'All day',              'months': ['-','-','-','-','-','x','x','x','x','x','x','x']},
+    {'name': 'Oyster',              'price':  1100, 'size': 'Small', 'speed':  'Slow',      'hours': 'All day',              'months': ['x','x','-','-','-','-','-','-','x','x','x','x']},
+    {'name': 'Scallop',             'price':  1200, 'size': 'Medium', 'speed': 'Slow',      'hours': 'All day',              'months': ['x','x','x','x','x','x','x','x','x','x','x','x']},
+    {'name': 'Whelk',               'price':  1000, 'size': 'Small', 'speed':  'Slow',      'hours': 'All day',              'months': ['x','x','x','x','x','x','x','x','x','x','x','x']},
+    {'name': 'Turban shell',        'price':  1000, 'size': 'Small', 'speed':  'Slow',      'hours': 'All day',              'months': ['-','-','x','x','x','-','-','-','x','x','x','x']},
+    {'name': 'Abalone',             'price':  2000, 'size': 'Medium', 'speed': 'Medium',    'hours': '4pm - 9am',            'months': ['x','-','-','-','-','x','x','x','x','x','x','x']},
+    {'name': 'Gigas giant clam',    'price': 15000, 'size': 'Huge', 'speed':   'Very fast', 'hours': 'All day',              'months': ['-','-','-','-','x','x','x','x','x','-','-','-']},
+    {'name': 'Chambered nautilus',  'price':  1800, 'size': 'Medium', 'speed': 'Medium',    'hours': '4pm - 9am',            'months': ['-','-','x','x','x','x','-','-','x','x','x','-']},
+    {'name': 'Octopus',             'price':  1200, 'size': 'Medium', 'speed': 'Slow',      'hours': 'All day',              'months': ['x','x','x','x','x','x','x','x','x','x','x','x']},
+    {'name': 'Umbrella octopus',    'price':  6000, 'size': 'Small', 'speed':  'Fast',      'hours': 'All day',              'months': ['-','-','x','x','x','-','-','-','x','x','x','-']},
+    {'name': 'Vampire squid',       'price': 10000, 'size': 'Medium', 'speed': 'Very fast', 'hours': '4pm - 9am',            'months': ['-','-','-','-','x','x','x','x','-','-','-','-']},
+    {'name': 'Firefly squid',       'price':  1400, 'size': 'Tiny', 'speed':   'Slow',      'hours': '9pm - 4am',            'months': ['-','-','x','x','x','x','-','-','-','-','-','-']},
+    {'name': 'Gazami crab',         'price':  2200, 'size': 'Medium', 'speed': 'Medium',    'hours': 'All day',              'months': ['-','-','-','-','-','x','x','x','x','x','x','-']},
+    {'name': 'Dungeness crab',      'price':  1900, 'size': 'Medium', 'speed': 'Medium',    'hours': 'All day',              'months': ['x','x','x','x','x','-','-','-','-','-','x','x']},
+    {'name': 'Snow crab',           'price':  6000, 'size': 'Large', 'speed':  'Fast',      'hours': 'All day',              'months': ['x','x','x','x','-','-','-','-','-','-','x','x']},
+    {'name': 'Red king crab',       'price':  8000, 'size': 'Large', 'speed':  'Very fast', 'hours': 'All day',              'months': ['x','x','x','-','-','-','-','-','-','-','x','x']},
+    {'name': 'Acorn barnacle',      'price':   600, 'size': 'Tiny', 'speed':   'Stationary','hours': 'All day',              'months': ['x','x','x','x','x','x','x','x','x','x','x','x']},
+    {'name': 'Spider crab',         'price': 12000, 'size': 'Huge', 'speed':   'Very fast', 'hours': 'All day',              'months': ['-','-','x','x','-','-','-','-','-','-','-','-']},
+    {'name': 'Tiger prawn',         'price':  3000, 'size': 'Small', 'speed':  'Medium',    'hours': '4pm - 9am',            'months': ['-','-','-','-','-','x','x','x','x','-','-','-']},
+    {'name': 'Sweet shrimp',        'price':  1400, 'size': 'Small', 'speed':  'Slow',      'hours': '4pm - 9am',            'months': ['x','x','-','-','-','-','-','-','x','x','x','x']},
+    {'name': 'Mantis shrimp',       'price':  2500, 'size': 'Small', 'speed':  'Medium',    'hours': '4pm - 9am',            'months': ['x','x','x','x','x','x','x','x','x','x','x','x']},
+    {'name': 'Spiny lobster',       'price':  5000, 'size': 'Large', 'speed':  'Fast',      'hours': '9pm - 4am',            'months': ['-','-','-','-','-','-','-','-','-','x','x','x']},
+    {'name': 'Lobster',             'price':  4500, 'size': 'Large', 'speed':  'Fast',      'hours': 'All day',              'months': ['x','-','-','x','x','x','-','-','-','-','-','x']},
+    {'name': 'Giant isopod',        'price': 12000, 'size': 'Medium', 'speed': 'Very fast', 'hours': '9am - 4pm & 9pm - 4am','months': ['-','-','-','-','-','-','x','x','x','x','-','-']},
+    {'name': 'Horseshoe Crab',      'price':  2500, 'size': 'Medium', 'speed': 'Medium',    'hours': '9pm - 4am',            'months': ['-','-','-','-','-','-','x','x','x','-','-','-']},
+    {'name': 'Sea pineapple',       'price':  1500, 'size': 'Small', 'speed':  'Slow',      'hours': 'All day',              'months': ['-','-','-','x','x','x','x','x','-','-','-','-']},
+    {'name': 'Spotted garden eel',  'price':  1100, 'size': 'Small', 'speed':  'Slow',      'hours': '4am - 9pm',            'months': ['-','-','-','-','x','x','x','x','x','x','-','-']},
+    {'name': 'Flatworm',            'price':   700, 'size': 'Tiny', 'speed':   'Very slow', 'hours': '4pm - 9am',            'months': ['-','-','-','-','-','-','-','x','x','-','-','-']},
+    {'name': 'Venus flower basket', 'price':  5000, 'size': 'Medium', 'speed': 'Fast',      'hours': 'All day',              'months': ['x','x','-','-','-','-','-','-','-','x','x','x']}
 ]
 
 conn = sqlite3.connect("acnh.sqlite")
 cur = conn.cursor()
-conn.execute('CREATE TABLE fish          (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT, price INTEGER,    location TEXT, shadow TEXT, start_time1 INTEGER NULL, end_time1 INTEGER NULL, start_time2 INTEGER NULL, end_time2 INTEGER NULL, caught BOOL, donated BOOL)')
-conn.execute('CREATE TABLE bugs          (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT, price INTEGER,    location TEXT,              start_time1 INTEGER NULL, end_time1 INTEGER NULL, start_time2 INTEGER NULL, end_time2 INTEGER NULL, caught BOOL, donated BOOL)')
-conn.execute('CREATE TABLE sea_creatures (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT, price INTEGER, shadow_size INTEGER,  speed TEXT, start_time1 INTEGER NULL, end_time1 INTEGER NULL, start_time2 INTEGER NULL, end_time2 INTEGER NULL, caught BOOL, donated BOOL)')
-conn.execute('CREATE TABLE months        (table_name TEXT, id INTEGER, month_mask INTEGER)')
-INSERT_FISH =      'INSERT INTO fish          (name, price, location,   shadow, start_time1, end_time1, start_time2, end_time2, caught, donated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-INSERT_BUGS =      'INSERT INTO bugs          (name, price, location,           start_time1, end_time1, start_time2, end_time2, caught, donated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-INSERT_CREATURES = 'INSERT INTO sea_creatures (name, price, shadow_size, speed, start_time1, end_time1, start_time2, end_time2, caught, donated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+conn.execute('CREATE TABLE fish          (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT, price INTEGER, location TEXT,        shadow TEXT, available_hours INTEGER, available_months INTEGER, caught BOOL, donated BOOL)')
+conn.execute('CREATE TABLE bugs          (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT, price INTEGER, location TEXT,                     available_hours INTEGER, available_months INTEGER, caught BOOL, donated BOOL)')
+conn.execute('CREATE TABLE sea_creatures (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT, price INTEGER, shadow_size INTEGER,  speed TEXT,  available_hours INTEGER, available_months INTEGER, caught BOOL, donated BOOL)')
+INSERT_FISH =      'INSERT INTO fish          (name, price, available_hours, available_months, location,   shadow,  caught, donated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+INSERT_BUGS =      'INSERT INTO bugs          (name, price, available_hours, available_months, location,            caught, donated) VALUES (?, ?, ?, ?, ?, ?, ?)'
+INSERT_CREATURES = 'INSERT INTO sea_creatures (name, price, available_hours, available_months, shadow_size, speed,  caught, donated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+
 def times(val):
     if val == 'All day':
-        return [None, None, None, None]
+        return 4294967295 # u32 max
     if '&' in val:
         parts = val.split('&')
-        return time_pair(parts[0]) + time_pair(parts[1])
+        return time_pair(parts[0]) | time_pair(parts[1])
     else:
-        return time_pair(val) + [None, None]
+        return time_pair(val)
 
-
+# Convert a time pair (eg 4 PM - 8 AM) into a
+# bit mask of the available hours
+#   23  22  21  20  19  18  17  16  15  14  13  12  11  10   9   8   7   6   5   4   2   2   1   0
+# | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 def time_pair(val):
     parts = val.split(' - ')
-    return [time_part(parts[0]), time_part(parts[1])]
+    start = time_part(parts[0])
+    end = time_part(parts[1])
+    ret = 0
+    # If start is > than end it wraps around midnight
+    # Here will will need to include from the start of this
+    # pair until midnight
+    # and then also include midnight until the end
+    if start > end:
+        for i in range(start+1, 25):
+            ret |= 1 << i
+        for i in range(1, end+1):
+            ret |= 1 << i
+    else:
+        for i in range(start+1, end+1):
+            ret |= 1 << i
+    return ret
 
 def time_part(val):
     n = int(val.strip()[0])
-    if 'PM' in val:
+    if 'PM' in val and n != 12:
         n += 12
+    elif 'AM' in val and n == 12:
+        n = 0
     return n
 
 ACTIVITIES = [
-    ('fish',          4,      FISH,      INSERT_FISH),
-    ('bugs',          3,      BUGS,      INSERT_BUGS),
-    ('sea_creatures', 4, CREATURES, INSERT_CREATURES),
+    ('fish',               FISH,      INSERT_FISH),
+    ('bugs',               BUGS,      INSERT_BUGS),
+    ('sea_creatures', CREATURES, INSERT_CREATURES),
 ]
 
-for (table, time_idx, rows, insert) in ACTIVITIES:
+def parse_months(months):
+    month_mask = 0
+    for (i, check) in enumerate(months):
+        if check == 'x':
+            month_mask |= MONTHS[i]
+    return month_mask
+
+def params_for(table, d):
+    # all inserts start with these
+    params = [
+        d['name'],
+        d['price'],
+        times(d['hours']),
+        parse_months(d['months']),
+    ]
+    # the 3 tables have varing different fields
+    if table == 'fish':
+        params.append(d['location'])
+        params.append(d['size'])
+    elif table == 'bugs':
+        params.append(d['location'])
+    elif table == 'sea_creatures':
+        params.append(d['size'])
+        params.append(d['speed'])
+    # All insert statements end with caught and donated
+    # which will default to false
+    params.append(False)
+    params.append(False)
+    return params
+
+
+for (table, rows, insert) in ACTIVITIES:
     print(f'inserting into {table}')
     
     for row in rows:
-        params = row[:time_idx]
-        t = times(row[time_idx])
-        params.append(t[0])
-        params.append(t[1])
-        params.append(t[2])
-        params.append(t[3])
-        params.append(False)
-        params.append(False)
-        l = len(row)
-        
-        month_mask = 0
-        for (i, check) in enumerate(row[-12:]):
-            idx = time_idx + 4 + i
-            if check == 'x':
-                month_mask |= MONTHS[i]
+        params = params_for(table, row)
         values = ','.join('?' * len(params))
         print(params)
         cur.execute(insert, params)
-        cur.execute(f'INSERT INTO months VALUES (?1, ?2, ?3)', [table, cur.lastrowid, month_mask])
 
 conn.commit()
 conn.close()

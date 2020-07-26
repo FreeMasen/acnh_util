@@ -24,72 +24,30 @@ impl std::error::Error for Error {}
 pub async fn get_fish() -> Result<Vec<Fish>> {
     let conn = CONN.lock().await;
     let mut stmt = conn.prepare("
-    SELECT fish.id, name, price, location, shadow, months.month_mask, caught, donated
-    FROM fish
-      JOIN months 
-        ON months.id = fish.id
-        AND months.table_name = 'fish'
-    ")?;
-    let query_res = stmt.query_map(rusqlite::params![], |row| {
-        Ok(
-            (
-                row.get::<_, i32>("id")?,
-                row.get::<_, String>("name")?,
-                row.get::<_, i32>("price")?,
-                row.get::<_, String>("location")?,
-                row.get::<_, String>("shadow")?,
-                row.get::<_, i32>("month_mask")?,
-                row.get::<_, bool>("caught")?,
-                row.get::<_, bool>("donated")?,
-            )
-        )
-    }).map_err(|e| Error(format!("Error querying fish: {}", e)))?;
-    query_res.map(|r| {
-        let row = r.map_err(|e| Error(format!("Error querying fish: {}", e)))?;
-        let (id, name, value, location, size_str, months_int, caught, donated) = row;
-        let size = FishSize::from_str(&size_str)?;
-        let months_active = months_int.into();
-        Ok(Fish {
-            id,
-            name,
-            value,
-            location,
-            size,
-            months_active,
-            caught,
-            donated,
-        })
-    }).collect()
+    SELECT fish.id, name, price, location, shadow, available_months, available_hours, caught, donated
+    FROM fish")?;
+    let stmt_res = stmt.query_and_then(rusqlite::params![], row_to_fish)
+        .map_err(|e| Error(format!("Error querying fish: {}", e)))?;
+    stmt_res.collect()
 }
 
 pub async fn get_bugs() -> Result<Vec<Bug>> {
     let conn = CONN.lock().await;
     let mut stmt = conn.prepare("
-    SELECT bugs.id, name, location, price, months.month_mask, caught, donated
-    FROM bugs
-      JOIN months 
-        ON months.id = bugs.id
-        AND months.table_name = 'bugs'
-    ")?;
-    let stmt_iter = stmt.query_map(rusqlite::params![], |row| {
-        Ok(
-            Bug {
-                id: row.get("id")?,
-                name: row.get("name")?,
-                value: row.get("price")?,
-                location: row.get("location")?,
-                months_active: row.get::<_, i32>("month_mask")?.into(),
-                caught: row.get("caught")?,
-                donated: row.get("donated")?,
-            }
-        )
-    })?;
-    let mut ret = Vec::new();
-    for item in stmt_iter {
-        let fish = item?;
-        ret.push(fish);
-    }
-    Ok(ret)
+    SELECT bugs.id, name, location, price, available_months, available_hours, caught, donated
+    FROM bugs")?;
+    let stmt_iter = stmt.query_and_then(rusqlite::params![], row_to_bug)
+        .map_err(|e| Error(format!("failed to get bugs: {}", e)))?;
+    stmt_iter.collect()
+}
+
+pub async fn get_sea_creatures() -> Result<Vec<SeaCreature>> {
+    let conn = CONN.lock().await;
+    let mut stmt = conn.prepare("
+    SELECT sea_creatures.id, name, shadow_size, speed, price, available_months, available_hours, caught, donated
+    FROM sea_creatures")?;
+    let stmt_iter = stmt.query_and_then(rusqlite::params![], row_to_sea_creature).map_err(|e| Error(format!("Error querying sea creatures: {}", e)))?;
+    stmt_iter.collect()
 }
 
 pub async fn update_fish(fish: Fish) -> Result<()> {
@@ -120,51 +78,6 @@ pub async fn update_bug(bug: Bug) -> Result<()> {
     Ok(())
 }
 
-pub async fn get_sea_creatures() -> Result<Vec<SeaCreature>> {
-    use std::convert::TryInto;
-    type PreCreature = (i32, String, i32, String, String, i32, bool, bool);
-    let conn = CONN.lock().await;
-    let mut stmt = conn.prepare("
-    SELECT sea_creatures.id, name, shadow_size, speed, price, months.month_mask, caught, donated
-    FROM sea_creatures
-      JOIN months 
-        ON months.id = sea_creatures.id
-        AND months.table_name = 'sea_creatures'
-    ")?;
-    let stmt_iter = stmt.query_map(rusqlite::params![], |row| {
-        Ok(
-            (
-                row.get::<_, i32>("id")?,
-                row.get::<_, String>("name")?,
-                row.get::<_, i32>("price")?,
-                row.get::<_, String>("shadow_size")?,
-                row.get::<_, String>("speed")?,
-                row.get::<_, i32>("month_mask")?,
-                row.get::<_, bool>("caught")?,
-                row.get::<_, bool>("donated")?,
-            )
-        )
-    }).map_err(|e| Error(format!("Error querying sea creatures: {}", e)))?;
-    stmt_iter.map(|r: std::result::Result<PreCreature, _>| {
-        let row = r.map_err(|e| Error(format!("Error querying fish: {}", e)))?;
-        let (id, name, value, size_str, speed_str, months_int, caught, donated) = row;
-        let speed = CreatureSpeed::from_str(&speed_str)?;
-        let size = ShadowSize::from_str(&size_str)?;
-        let months_active: MonthsActive = months_int.try_into()?;
-        Ok(SeaCreature {
-            id,
-            name,
-            value,
-            size,
-            speed,
-            months_active,
-            caught,
-            donated,
-        })
-    })
-    .collect()
-}
-
 pub async fn update_creature(creature: SeaCreature) -> Result<()> {
     let conn = CONN.lock().await;
     {
@@ -179,6 +92,116 @@ pub async fn update_creature(creature: SeaCreature) -> Result<()> {
     Ok(())
 }
 
+/// Get a full list of fish, bugs and sea creatures that are
+/// available at the current hour in the current month
+pub async fn available_for(hour: u32, month: u32) -> Result<Available> {
+    // Typical hours are 0 indexed, our hour mask is 1 indexed so we always
+    // need to add 1 (eg midnight == 1, 11pm == 24)
+    let hour = hour + 1;
+    let c = CONN.lock().await;
+    let fish_stmt = c.prepare("
+    SELECT fish.id, name, price, location, shadow, available_months, available_hours, caught, donated
+    FROM fish
+        WHERE available_hours & ?1 > 0
+        AND available_months & ?2 > 0
+    ")?;
+    let fish = execute_and_return(hour, month, fish_stmt, row_to_fish)?;
+    let bugs_stmt = c.prepare("
+    SELECT bugs.id, name, location, price, available_months, available_hours, caught, donated
+    FROM bugs
+        WHERE available_hours & ?1 > 0
+        AND available_months & ?2 > 0
+    ")?;
+    let bugs = execute_and_return(hour, month, bugs_stmt, row_to_bug)?;
+    let sea_stmt = c.prepare("
+    SELECT sea_creatures.id, name, shadow_size, speed, price, available_months, available_hours, caught, donated
+    FROM sea_creatures
+        WHERE available_hours & ?1 > 0
+        AND available_months & ?2 > 0
+    ")?;
+    let sea_creatures = execute_and_return(hour, month, sea_stmt, row_to_sea_creature)?;
+
+    Ok(Available {
+        fish,
+        bugs,
+        sea_creatures,
+    })
+}
+
+fn execute_and_return<T, F>(hour: u32, month: u32, mut stmt: rusqlite::Statement, f: F) -> Result<Vec<T>> 
+where F: Fn(&rusqlite::Row) -> Result<T> {
+    use rusqlite::params;
+    let stmt_iter = stmt.query_and_then(params![1 << hour, 1 << month], f)
+        .map_err(|e| Error(format!("{}", e)))?;
+    stmt_iter.collect()
+}
+
+fn row_to_fish(row: &rusqlite::Row) -> Result<Fish> {   
+    let id = row.get::<_, i32>("id")?;
+    let name = row.get::<_, String>("name")?;
+    let value = row.get::<_, i32>("price")?;
+    let location = row.get::<_, String>("location")?;
+    let shadow = row.get::<_, String>("shadow")?;
+    let month_mask = row.get::<_, u32>("available_months")?;
+    let hour_mask = row.get::<_, u32>("available_hours")?;
+    let caught = row.get::<_, bool>("caught")?;
+    let donated = row.get::<_, bool>("donated")?;
+    let size = FishSize::from_str(&shadow)?;
+    let months_active = month_mask.into();
+    let hours_active = hour_mask.into();
+    Ok(Fish {
+        id,
+        name,
+        value,
+        location,
+        size,
+        months_active,
+        hours_active,
+        caught,
+        donated,
+    })
+}
+
+fn row_to_bug(row: &rusqlite::Row) -> Result<Bug> {
+    Ok(Bug {
+        id: row.get("id")?,
+        name: row.get("name")?,
+        value: row.get("price")?,
+        location: row.get("location")?,
+        months_active: row.get::<_, u32>("available_months")?.into(),
+        hours_active: row.get::<_, u32>("available_hours")?.into(),
+        caught: row.get("caught")?,
+        donated: row.get("donated")?,
+    })
+}
+
+fn row_to_sea_creature(row: &rusqlite::Row) -> Result<SeaCreature> {
+    let id = row.get::<_, i32>("id")?;
+    let name = row.get::<_, String>("name")?;
+    let value = row.get::<_, i32>("price")?;
+    let shadow_size = row.get::<_, String>("shadow_size")?;
+    let speed = row.get::<_, String>("speed")?;
+    let month_mask = row.get::<_, u32>("available_months")?;
+    let hours_mask = row.get::<_, u32>("available_hours")?;
+    let caught = row.get::<_, bool>("caught")?;
+    let donated = row.get::<_, bool>("donated")?;
+    let speed = CreatureSpeed::from_str(&speed)?;
+    let size = ShadowSize::from_str(&shadow_size)?;
+    let months_active: MonthsActive = month_mask.into();
+    let hours_active = hours_mask.into();
+    Ok(SeaCreature {
+        id,
+        name,
+        value,
+        size,
+        speed,
+        months_active,
+        hours_active,
+        caught,
+        donated,
+    })
+} 
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Fish {
     pub id: i32,
@@ -187,6 +210,7 @@ pub struct Fish {
     pub location: String,
     pub size: FishSize,
     pub months_active: MonthsActive,
+    pub hours_active: HoursActive,
     pub caught: bool,
     pub donated: bool,
 }
@@ -306,14 +330,24 @@ pub struct Bug {
     pub value: i32,
     pub location: String,
     pub months_active: MonthsActive,
+    pub hours_active: HoursActive,
     pub caught: bool,
     pub donated: bool,
 }
 
+
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct MonthsActive(pub [bool; 12]);
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct HoursActive(pub [bool; 24]);
 
 impl std::ops::Deref for MonthsActive {
+    type Target = [bool];
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl std::ops::Deref for HoursActive {
     type Target = [bool];
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -334,21 +368,51 @@ impl std::convert::TryFrom<&[bool]> for MonthsActive {
     }
 }
 
-impl From<i32> for MonthsActive {
-    fn from(other: i32) -> Self {
+impl From<u32> for MonthsActive {
+    fn from(other: u32) -> Self {
         Self([
-            other & 1 > 0,
-            other & 1 << 1 > 0,
-            other & 1 << 2 > 0,
-            other & 1 << 3 > 0,
-            other & 1 << 4 > 0,
-            other & 1 << 5 > 0,
-            other & 1 << 6 > 0,
-            other & 1 << 7 > 0,
-            other & 1 << 8 > 0,
-            other & 1 << 9 > 0,
+            other & 1       > 0,
+            other & 1 <<  1 > 0,
+            other & 1 <<  2 > 0,
+            other & 1 <<  3 > 0,
+            other & 1 <<  4 > 0,
+            other & 1 <<  5 > 0,
+            other & 1 <<  6 > 0,
+            other & 1 <<  7 > 0,
+            other & 1 <<  8 > 0,
+            other & 1 <<  9 > 0,
             other & 1 << 10 > 0,
             other & 1 << 11 > 0,
+        ])
+    }
+}
+impl From<u32> for HoursActive {
+    fn from(other: u32) -> Self {
+        Self([
+            other & 1       > 0,
+            other & 1 <<  1 > 0,
+            other & 1 <<  2 > 0,
+            other & 1 <<  3 > 0,
+            other & 1 <<  4 > 0,
+            other & 1 <<  5 > 0,
+            other & 1 <<  6 > 0,
+            other & 1 <<  7 > 0,
+            other & 1 <<  8 > 0,
+            other & 1 <<  9 > 0,
+            other & 1 << 10 > 0,
+            other & 1 << 11 > 0,
+            other & 1 << 12 > 0,
+            other & 1 << 13 > 0,
+            other & 1 << 14 > 0,
+            other & 1 << 15 > 0,
+            other & 1 << 16 > 0,
+            other & 1 << 17 > 0,
+            other & 1 << 18 > 0,
+            other & 1 << 19 > 0,
+            other & 1 << 20 > 0,
+            other & 1 << 21 > 0,
+            other & 1 << 22 > 0,
+            other & 1 << 23 > 0,
         ])
     }
 }
@@ -365,8 +429,8 @@ impl Into<[bool; 12]> for MonthsActive {
     }
 }
 
-impl Into<i32> for MonthsActive {
-    fn into(self) -> i32 {
+impl Into<u32> for MonthsActive {
+    fn into(self) -> u32 {
         let mut ret = 0;
         for (i, &b) in self.0.iter().enumerate() {
             if b {
@@ -385,6 +449,7 @@ pub struct SeaCreature {
     pub size: ShadowSize,
     pub speed: CreatureSpeed,
     pub months_active: MonthsActive,
+    pub hours_active: HoursActive,
     pub caught: bool,
     pub donated: bool,
 }
@@ -415,6 +480,12 @@ impl FromStr for CreatureSpeed {
     }
 }
 
+#[derive(Debug, Serialize)]
+pub struct Available {
+    fish:  Vec<Fish>,
+    bugs: Vec<Bug>,
+    sea_creatures: Vec<SeaCreature>,
+}
 #[cfg(test)]
 mod test {
     use super::*;
@@ -445,8 +516,8 @@ mod test {
         );
     }
 
-    fn test_months(target: i32, months: MonthsActive) {
-        let as_int: i32 = months.into();
+    fn test_months(target: u32, months: MonthsActive) {
+        let as_int: u32 = months.into();
         assert_eq!(as_int, target);
         let revert: MonthsActive = as_int.into();
         assert_eq!(revert.0, months.0,);

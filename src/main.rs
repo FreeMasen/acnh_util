@@ -9,6 +9,7 @@ mod status {
 }
 #[tokio::main]
 async fn main() {
+    pretty_env_logger::init();
     let fish_list = get().and(path("fish")).and_then(|| async { 
         match data::get_fish().await {
             Ok(fish) => reply_with_status(Response::Fish(fish)),
@@ -51,11 +52,19 @@ async fn main() {
                 Err(e) => reply_with_status(Response::Error(format!("Error updating sea creature: {}", e))),
             }
         });
+    let available = get().and(path!("available" / u32 / u32))
+        .and_then(|hour, month| async move {
+            match data::available_for(hour+1, month).await {
+                Ok(b) => reply_with_status(Response::AvailableFor(b)),
+                Err(e) => reply_with_status(Response::Error(format!("Error getting available: {}", e)))
+            }
+        });
     let catch_all = warp::any().and_then(|| async { reply_with_status(Response::NotFound) });
     let routes = dir("public")
         .or(fish_list)
         .or(bug_list)
         .or(sea_creature_list)
+        .or(available)
         .or(update_fish)
         .or(update_bug)
         .or(update_sea_creatures)
@@ -79,6 +88,7 @@ pub enum Response {
     Fish(Vec<data::Fish>),
     Bugs(Vec<data::Bug>),
     SeaCreatures(Vec<data::SeaCreature>),
+    AvailableFor(data::Available),
     FishUpdated,
     BugUpdated,
     SeaCreatureUpdated,

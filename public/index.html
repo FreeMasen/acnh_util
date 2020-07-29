@@ -5,12 +5,20 @@
         <meta charset="utf-8" />
     </head>
     <body>
+        <div class="global-filters">
+            <button id="global-toggle-caught">Toggle Caught</button>
+            <button id="global-toggle-donated">Toggle Donated</button>
+        </div>
         <table id="fish-table">
             <thead>
+                <tr>
+                    <th colspan="7">Fish</th>
+                </tr>
                 <tr>
                     <th class="cell-name">
                         Name
                     </th>
+                    <th class="cell-image"></th>
                     <th class="cell-location">
                         Location
                     </th>
@@ -21,7 +29,7 @@
                         Size
                     </th>
                     <th class="cell-active">
-                        Currently Active
+                        ◉
                     </th>
                     <th class="cell-status">
                         Status
@@ -41,9 +49,13 @@
         <table id="bug-table">
             <thead>
                 <tr>
+                    <th colspan="6">Bugs</th>
+                </tr>
+                <tr>
                     <th class="cell-name">
                         Name
                     </th>
+                    <th class="cell-image"></th>
                     <th class="cell-location">
                         Location
                     </th>
@@ -51,7 +63,7 @@
                         Value
                     </th>
                     <th class="cell-active">
-                        Currently Active
+                        ◉
                     </th>
                     <th class="cell-status">
                         Status
@@ -68,34 +80,40 @@
 
             </tbody>
         </table>
+        <table id="sea-creature-table">
+            <thead>
+                <tr>
+                    <th colspan="7">Sea Creatures</th>
+                </tr>
+                <tr>
+                <th class="cell-name">
+                    Name
+                </th>
+                <th class="cell-image"></th>
+                <th class="cell-value">
+                    Value
+                </th>
+                <th class="cell-speed">
+                    Speed
+                </th>
+                <th class="cell-size">
+                    Size
+                </th>
+                <th class="cell-active">
+                    ◉
+                </th>
+                <th class="cell-status">
+                    Status
+                </th>
+                <th class="cell-action">
+                    Action
+                </th>
+            </tr>
+            </thead>
+            <tbody>
 
-        <template id="fish-row-template">
-            <tr>
-                <td class="cell-name"></td>
-                <td class="cell-location"></td>
-                <td class="cell-value"></td>
-                <td class="cell-size"></td>
-                <td class="cell-active"></td>
-                <td class="cell-status"></td>
-                <td class="cell-action">
-                    <button class="caught-button"></button>
-                    <button class="donated-button"></button>
-                </td>
-            </tr>
-        </template>
-        <template id="bug-row-template">
-            <tr>
-                <td class="cell-name"></td>
-                <td class="cell-location"></td>
-                <td class="cell-value"></td>
-                <td class="cell-active"></td>
-                <td class="cell-status"></td>
-                <td class="cell-action">
-                    <button class="caught-button"></button>
-                    <button class="donated-button"></button>
-                </td>
-            </tr>
-        </template>
+            </tbody>
+        </table>
         <script type="text/javascript" src="acnh.js"></script>
     </body>
 </html>

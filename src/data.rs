@@ -1,14 +1,16 @@
-use std::{sync::Arc, str::FromStr};
-use tokio::sync::Mutex;
-use serde::{Serialize, Deserialize};
 use rusqlite::Connection;
+use serde::{Deserialize, Serialize};
+use std::{str::FromStr, sync::Arc};
+use tokio::sync::Mutex;
 
 lazy_static::lazy_static! {
-    static ref CONN: Arc<Mutex<Connection>> = Arc::new(Mutex::new(Connection::open("acnh.sqlite").expect("failed to open sqlite connection")));
+
+    static ref CONN: Arc<Mutex<Connection>> = Arc::new(Mutex::new(Connection::open(
+        std::env::var("ACNH_DATABASE").unwrap_or_else(|_| "acnh.sqlite".to_string())
+    ).expect("failed to open sqlite connection")));
 }
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
 
 #[derive(Debug)]
 pub struct Error(String);
@@ -26,17 +28,21 @@ pub async fn get_fish() -> Result<Vec<Fish>> {
     let mut stmt = conn.prepare("
     SELECT fish.id, name, price, location, shadow, available_months, available_hours, caught, donated
     FROM fish")?;
-    let stmt_res = stmt.query_and_then(rusqlite::params![], row_to_fish)
+    let stmt_res = stmt
+        .query_and_then(rusqlite::params![], row_to_fish)
         .map_err(|e| Error(format!("Error querying fish: {}", e)))?;
     stmt_res.collect()
 }
 
 pub async fn get_bugs() -> Result<Vec<Bug>> {
     let conn = CONN.lock().await;
-    let mut stmt = conn.prepare("
+    let mut stmt = conn.prepare(
+        "
     SELECT bugs.id, name, location, price, available_months, available_hours, caught, donated
-    FROM bugs")?;
-    let stmt_iter = stmt.query_and_then(rusqlite::params![], row_to_bug)
+    FROM bugs",
+    )?;
+    let stmt_iter = stmt
+        .query_and_then(rusqlite::params![], row_to_bug)
         .map_err(|e| Error(format!("failed to get bugs: {}", e)))?;
     stmt_iter.collect()
 }
@@ -46,19 +52,23 @@ pub async fn get_sea_creatures() -> Result<Vec<SeaCreature>> {
     let mut stmt = conn.prepare("
     SELECT sea_creatures.id, name, shadow_size, speed, price, available_months, available_hours, caught, donated
     FROM sea_creatures")?;
-    let stmt_iter = stmt.query_and_then(rusqlite::params![], row_to_sea_creature).map_err(|e| Error(format!("Error querying sea creatures: {}", e)))?;
+    let stmt_iter = stmt
+        .query_and_then(rusqlite::params![], row_to_sea_creature)
+        .map_err(|e| Error(format!("Error querying sea creatures: {}", e)))?;
     stmt_iter.collect()
 }
 
 pub async fn update_fish(fish: Fish) -> Result<()> {
     let conn = CONN.lock().await;
     {
-        let mut stmt = conn.prepare_cached("
+        let mut stmt = conn.prepare_cached(
+            "
         UPDATE fish 
         set donated = ?2,
         caught = ?3
         WHERE id = ?1
-        ")?;
+        ",
+        )?;
         stmt.execute(rusqlite::params![fish.id, fish.donated, fish.caught])?;
     }
     Ok(())
@@ -67,12 +77,14 @@ pub async fn update_fish(fish: Fish) -> Result<()> {
 pub async fn update_bug(bug: Bug) -> Result<()> {
     let conn = CONN.lock().await;
     {
-        let mut stmt = conn.prepare_cached("
+        let mut stmt = conn.prepare_cached(
+            "
         UPDATE bugs 
-        set bugs.donated = ?2,
-        bugs.caught = ?3
+        set donated = ?2,
+        caught = ?3
         WHERE bugs.id = ?1
-        ")?;
+        ",
+        )?;
         stmt.execute(rusqlite::params![bug.id, bug.donated, bug.caught])?;
     }
     Ok(())
@@ -81,13 +93,19 @@ pub async fn update_bug(bug: Bug) -> Result<()> {
 pub async fn update_creature(creature: SeaCreature) -> Result<()> {
     let conn = CONN.lock().await;
     {
-        let mut stmt = conn.prepare_cached("
+        let mut stmt = conn.prepare_cached(
+            "
         UPDATE sea_creatures 
         set donated = ?2,
         caught = ?3
         WHERE id = ?1
-        ")?;
-        stmt.execute(rusqlite::params![creature.id, creature.donated, creature.caught])?;
+        ",
+        )?;
+        stmt.execute(rusqlite::params![
+            creature.id,
+            creature.donated,
+            creature.caught
+        ])?;
     }
     Ok(())
 }
@@ -95,9 +113,10 @@ pub async fn update_creature(creature: SeaCreature) -> Result<()> {
 /// Get a full list of fish, bugs and sea creatures that are
 /// available at the current hour in the current month
 pub async fn available_for(hour: u32, month: u32) -> Result<Available> {
+    println!("hour: {}, month: {}", hour, month);
     // Typical hours are 0 indexed, our hour mask is 1 indexed so we always
     // need to add 1 (eg midnight == 1, 11pm == 24)
-    let hour = hour + 1;
+    // let hour = hour + 1;
     let c = CONN.lock().await;
     let fish_stmt = c.prepare("
     SELECT fish.id, name, price, location, shadow, available_months, available_hours, caught, donated
@@ -106,12 +125,14 @@ pub async fn available_for(hour: u32, month: u32) -> Result<Available> {
         AND available_months & ?2 > 0
     ")?;
     let fish = execute_and_return(hour, month, fish_stmt, row_to_fish)?;
-    let bugs_stmt = c.prepare("
+    let bugs_stmt = c.prepare(
+        "
     SELECT bugs.id, name, location, price, available_months, available_hours, caught, donated
     FROM bugs
         WHERE available_hours & ?1 > 0
         AND available_months & ?2 > 0
-    ")?;
+    ",
+    )?;
     let bugs = execute_and_return(hour, month, bugs_stmt, row_to_bug)?;
     let sea_stmt = c.prepare("
     SELECT sea_creatures.id, name, shadow_size, speed, price, available_months, available_hours, caught, donated
@@ -128,15 +149,26 @@ pub async fn available_for(hour: u32, month: u32) -> Result<Available> {
     })
 }
 
-fn execute_and_return<T, F>(hour: u32, month: u32, mut stmt: rusqlite::Statement, f: F) -> Result<Vec<T>> 
-where F: Fn(&rusqlite::Row) -> Result<T> {
+fn execute_and_return<T, F>(
+    hour: u32,
+    month: u32,
+    mut stmt: rusqlite::Statement,
+    f: F,
+) -> Result<Vec<T>>
+where
+    F: Fn(&rusqlite::Row) -> Result<T>,
+{
     use rusqlite::params;
-    let stmt_iter = stmt.query_and_then(params![1 << hour, 1 << month], f)
+    let hour = 1 << hour;
+    let month = 1 << (month - 1);
+    println!("shifted: hour {}, month {}", hour, month);
+    let stmt_iter = stmt
+        .query_and_then(params![hour, month], f)
         .map_err(|e| Error(format!("{}", e)))?;
     stmt_iter.collect()
 }
 
-fn row_to_fish(row: &rusqlite::Row) -> Result<Fish> {   
+fn row_to_fish(row: &rusqlite::Row) -> Result<Fish> {
     let id = row.get::<_, i32>("id")?;
     let name = row.get::<_, String>("name")?;
     let value = row.get::<_, i32>("price")?;
@@ -200,7 +232,7 @@ fn row_to_sea_creature(row: &rusqlite::Row) -> Result<SeaCreature> {
         caught,
         donated,
     })
-} 
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Fish {
@@ -240,9 +272,9 @@ impl std::str::FromStr for FishSize {
         let size = s
             .chars()
             .next()
-            .ok_or_else(|| Error(format!("FishSize must have at least 1 character")))?
+            .ok_or_else(|| Error(format!("FishSize must have at least 1 character: {:?}", s)))?
             .try_into()?;
-        let modifier = if s.len() > 0 {
+        let modifier = if !s.is_empty() {
             Some(s[1..].to_string())
         } else {
             None
@@ -304,7 +336,7 @@ impl FromStr for ShadowSize {
             "Medium" => ShadowSize::Large,
             "Large" => ShadowSize::ExtraLarge,
             "Huge" => ShadowSize::Gargantuan,
-            _ => return Err(Error(format!("Invalid ShadowSize: {}", s)))
+            _ => return Err(Error(format!("Invalid ShadowSize: {}", s))),
         };
         Ok(inner)
     }
@@ -335,10 +367,9 @@ pub struct Bug {
     pub donated: bool,
 }
 
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct MonthsActive(pub [bool; 12]);
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HoursActive(pub [bool; 24]);
 
 impl std::ops::Deref for MonthsActive {
@@ -358,9 +389,13 @@ impl std::convert::TryFrom<&[bool]> for MonthsActive {
     type Error = Error;
     fn try_from(value: &[bool]) -> std::result::Result<Self, Self::Error> {
         if !value.len() == 12 {
-            return Err(Error(format!("slice must be exactly 12 elements to be converted into MonthsActive: {:?} ({})", value, value.len())));
+            return Err(Error(format!(
+                "slice must be exactly 12 elements to be converted into MonthsActive: {:?} ({})",
+                value,
+                value.len()
+            )));
         }
-        let mut inner = [false;12];
+        let mut inner = [false; 12];
         for (&value, dest) in value.iter().zip(inner.iter_mut()) {
             *dest = value;
         }
@@ -371,16 +406,16 @@ impl std::convert::TryFrom<&[bool]> for MonthsActive {
 impl From<u32> for MonthsActive {
     fn from(other: u32) -> Self {
         Self([
-            other & 1       > 0,
-            other & 1 <<  1 > 0,
-            other & 1 <<  2 > 0,
-            other & 1 <<  3 > 0,
-            other & 1 <<  4 > 0,
-            other & 1 <<  5 > 0,
-            other & 1 <<  6 > 0,
-            other & 1 <<  7 > 0,
-            other & 1 <<  8 > 0,
-            other & 1 <<  9 > 0,
+            other & 1 > 0,
+            other & 1 << 1 > 0,
+            other & 1 << 2 > 0,
+            other & 1 << 3 > 0,
+            other & 1 << 4 > 0,
+            other & 1 << 5 > 0,
+            other & 1 << 6 > 0,
+            other & 1 << 7 > 0,
+            other & 1 << 8 > 0,
+            other & 1 << 9 > 0,
             other & 1 << 10 > 0,
             other & 1 << 11 > 0,
         ])
@@ -389,16 +424,16 @@ impl From<u32> for MonthsActive {
 impl From<u32> for HoursActive {
     fn from(other: u32) -> Self {
         Self([
-            other & 1       > 0,
-            other & 1 <<  1 > 0,
-            other & 1 <<  2 > 0,
-            other & 1 <<  3 > 0,
-            other & 1 <<  4 > 0,
-            other & 1 <<  5 > 0,
-            other & 1 <<  6 > 0,
-            other & 1 <<  7 > 0,
-            other & 1 <<  8 > 0,
-            other & 1 <<  9 > 0,
+            other & 1 > 0,
+            other & 1 << 1 > 0,
+            other & 1 << 2 > 0,
+            other & 1 << 3 > 0,
+            other & 1 << 4 > 0,
+            other & 1 << 5 > 0,
+            other & 1 << 6 > 0,
+            other & 1 << 7 > 0,
+            other & 1 << 8 > 0,
+            other & 1 << 9 > 0,
             other & 1 << 10 > 0,
             other & 1 << 11 > 0,
             other & 1 << 12 > 0,
@@ -430,6 +465,17 @@ impl Into<[bool; 12]> for MonthsActive {
 }
 
 impl Into<u32> for MonthsActive {
+    fn into(self) -> u32 {
+        let mut ret = 0;
+        for (i, &b) in self.0.iter().enumerate() {
+            if b {
+                ret |= 1 << i;
+            }
+        }
+        ret
+    }
+}
+impl Into<u32> for HoursActive {
     fn into(self) -> u32 {
         let mut ret = 0;
         for (i, &b) in self.0.iter().enumerate() {
@@ -482,7 +528,7 @@ impl FromStr for CreatureSpeed {
 
 #[derive(Debug, Serialize)]
 pub struct Available {
-    fish:  Vec<Fish>,
+    fish: Vec<Fish>,
     bugs: Vec<Bug>,
     sea_creatures: Vec<SeaCreature>,
 }
@@ -491,7 +537,7 @@ mod test {
     use super::*;
     #[test]
     fn round_trip_all_months() {
-        test_months(
+        run_test(
             1 | 1 << 1
                 | 1 << 2
                 | 1 << 3
@@ -507,8 +553,8 @@ mod test {
         );
     }
     #[test]
-    fn rount_trip_6_months() {
-        test_months(
+    fn round_trip_6_months() {
+        run_test(
             1 | 1 << 1 | 1 << 2 | 1 << 9 | 1 << 10 | 1 << 11,
             MonthsActive([
                 true, true, true, false, false, false, false, false, false, true, true, true,
@@ -516,10 +562,72 @@ mod test {
         );
     }
 
-    fn test_months(target: u32, months: MonthsActive) {
-        let as_int: u32 = months.into();
+    #[test]
+    fn all_hours() {
+        run_test(
+            (0..24).fold(0, |acc, v| acc | 1 << v),
+            HoursActive([true; 24]),
+        )
+    }
+
+    #[test]
+    fn all_even_hours() {
+        let mut t = 0;
+        let mut a = [false; 24];
+        for (i, v) in a.iter_mut().enumerate() {
+            if i % 2 == 0 {
+                t |= 1 << i;
+                *v = true;
+            }
+        }
+        run_test(t, HoursActive(a));
+    }
+
+    #[test]
+    fn all_odd_hours() {
+        let mut t = 0;
+        let mut a = [false; 24];
+        for (i, v) in a.iter_mut().enumerate() {
+            if i % 2 != 0 {
+                t |= 1 << i;
+                *v = true;
+            }
+        }
+        run_test(t, HoursActive(a));
+    }
+
+    #[test]
+    fn nine_am_to_four_pm() {
+        let mut t = 0;
+        let mut a = [false; 24];
+        for (i, v) in a[9..12 + 4].iter_mut().enumerate() {
+            t |= 1 << (i + 9);
+            *v = true
+        }
+        run_test(t, HoursActive(a));
+    }
+    #[test]
+    fn four_pm_to_nine_am() {
+        let mut t = 0;
+        let mut a = [false; 24];
+        for (i, v) in a[0..9].iter_mut().enumerate() {
+            t |= 1 << i;
+            *v = true;
+        }
+        for (i, v) in a[12 + 4..12 + 12].iter_mut().enumerate() {
+            t |= 1 << (i + 12 + 4);
+            *v = true;
+        }
+        run_test(t, HoursActive(a));
+    }
+
+    fn run_test<T>(target: u32, t: T)
+    where
+        T: Into<u32> + From<u32> + PartialEq + std::fmt::Debug + Copy,
+    {
+        let as_int: u32 = t.into();
         assert_eq!(as_int, target);
-        let revert: MonthsActive = as_int.into();
-        assert_eq!(revert.0, months.0,);
+        let revert: T = as_int.into();
+        assert_eq!(revert, t)
     }
 }

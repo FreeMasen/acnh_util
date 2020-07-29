@@ -3,3 +3,4 @@ node_modules/
 acnh.sqlite
 *.json
 !package.json
+*.txt

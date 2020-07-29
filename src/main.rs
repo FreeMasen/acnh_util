@@ -1,4 +1,4 @@
-use warp::{get, post, Filter, log, body::json, fs::dir, path,};
+use warp::{body::json, fs::dir, get, log, path, post, Filter};
 mod data;
 
 mod status {
@@ -10,7 +10,7 @@ mod status {
 #[tokio::main]
 async fn main() {
     pretty_env_logger::init();
-    let fish_list = get().and(path("fish")).and_then(|| async { 
+    let fish_list = get().and(path("fish")).and_then(|| async {
         match data::get_fish().await {
             Ok(fish) => reply_with_status(Response::Fish(fish)),
             Err(e) => reply_with_status(Response::Error(format!("Unable to get fish: {}", e))),
@@ -25,10 +25,14 @@ async fn main() {
     let sea_creature_list = get().and(path("sea_creatures")).and_then(|| async {
         match data::get_sea_creatures().await {
             Ok(creatures) => reply_with_status(Response::SeaCreatures(creatures)),
-            Err(e) => reply_with_status(Response::Error(format!("Unable to get sea creatures: {}", e))),
+            Err(e) => reply_with_status(Response::Error(format!(
+                "Unable to get sea creatures: {}",
+                e
+            ))),
         }
     });
-    let update_fish = post().and(warp::path!("update" /" fish"))
+    let update_fish = post()
+        .and(warp::path!("update" / "fish"))
         .and(json())
         .and_then(|f: data::Fish| async {
             match data::update_fish(f).await {
@@ -36,31 +40,40 @@ async fn main() {
                 Err(e) => reply_with_status(Response::Error(format!("Error updating fish: {}", e))),
             }
         });
-    let update_bug = post().and(warp::path!("update"/"bug"))
+    let update_bug = post()
+        .and(warp::path!("update" / "bug"))
         .and(json())
         .and_then(|b: data::Bug| async {
             match data::update_bug(b).await {
                 Ok(_) => reply_with_status(Response::BugUpdated),
-                Err(e) => reply_with_status(Response::Error(format!("Error updating fish: {}", e))),
+                Err(e) => reply_with_status(Response::Error(format!("Error updating bug: {}", e))),
             }
         });
-    let update_sea_creatures = post().and(warp::path!("update"/"sea_creature"))
+    let update_sea_creatures = post()
+        .and(warp::path!("update" / "sea_creature"))
         .and(json())
         .and_then(|s: data::SeaCreature| async {
             match data::update_creature(s).await {
                 Ok(_) => reply_with_status(Response::SeaCreatureUpdated),
-                Err(e) => reply_with_status(Response::Error(format!("Error updating sea creature: {}", e))),
+                Err(e) => reply_with_status(Response::Error(format!(
+                    "Error updating sea creature: {}",
+                    e
+                ))),
             }
         });
-    let available = get().and(path!("available" / u32 / u32))
+    let available = get()
+        .and(path!("available" / u32 / u32))
         .and_then(|hour, month| async move {
-            match data::available_for(hour+1, month).await {
+            match data::available_for(hour, month).await {
                 Ok(b) => reply_with_status(Response::AvailableFor(b)),
-                Err(e) => reply_with_status(Response::Error(format!("Error getting available: {}", e)))
+                Err(e) => {
+                    reply_with_status(Response::Error(format!("Error getting available: {}", e)))
+                }
             }
         });
     let catch_all = warp::any().and_then(|| async { reply_with_status(Response::NotFound) });
-    let routes = dir("public")
+    let p = std::env::var("ACNH_DIR").unwrap_or_else(|_| "public".to_string());
+    let routes = dir(p)
         .or(fish_list)
         .or(bug_list)
         .or(sea_creature_list)
@@ -69,8 +82,12 @@ async fn main() {
         .or(update_bug)
         .or(update_sea_creatures)
         .or(catch_all);
-    warp::serve(routes.with(log("acnh_util"))).run(([0,0,0,0], 8907)).await;
-    
+    let port = std::env::var("ACHN_PORT")
+        .map(|v| v.parse().unwrap_or(8907))
+        .unwrap_or(8907);
+    warp::serve(routes.with(log("acnh_util")))
+        .run(([0, 0, 0, 0], port))
+        .await;
 }
 
 fn reply_with_status(body: Response) -> Result<impl warp::Reply, std::convert::Infallible> {

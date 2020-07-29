@@ -1,0 +1,44 @@
+.global-filters {
+    width: 500px;
+    display: flex;
+    flex-flow: row;
+    justify-content: space-evenly;
+    margin: auto;
+}
+
+table {
+    border-collapse: collapse;
+    width: 500px;
+    margin: auto;
+}
+
+tr {
+    border-top: 1px solid black;
+}
+
+.cell-name {
+    width: 100px;
+}
+.cell-value {
+    text-align: right;
+}
+.cell-size,
+.cell-speed {
+    text-align: center;
+    width: 85px;
+}
+.cell-active {
+    text-align: center;
+    width: 10px
+}
+.cell-status {
+    text-align: center;
+}
+.cell-action {  
+    display: flex;
+    flex-flow: column;
+}
+
+.thumbnail-image {
+    width: 50px;
+}

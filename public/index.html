@@ -1,119 +1,168 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <link type="text/css" rel="stylesheet" href="style.css" />
-        <meta charset="utf-8" />
-    </head>
-    <body>
-        <div class="global-filters">
-            <button id="global-toggle-caught">Toggle Caught</button>
-            <button id="global-toggle-donated">Toggle Donated</button>
+
+<head>
+    <link type="text/css" rel="stylesheet" href="style.css" />
+    <meta charset="utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <link href="https://unpkg.com/nes.css/css/nes.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="global-filters">
+        <button id="global-toggle-caught" class="nes-btn">Toggle Caught</button>
+        <button id="global-toggle-donated" class="nes-btn">Toggle Donated</button>
+    </div>
+    <div id="tables-wrapper">
+        <div id="fish-table-wrapper" class="table-wrapper">
+            <table id="fish-table" class="nes-table is-bordered is-centered">
+                <colgroup>
+                    <col class="cell-name" width="120px">
+                    <col class="cell-image" width="50px">
+                    <col class="cell-location" width="50px">
+                    <col class="cell-value" width="100px">
+                    <col class="cell-size" width="50px">
+                    <col class="cell-active" width="200px">
+                    <col class="cell-status" width="50px">
+                    <col class="cell-action" width="70px">
+                    <col class="cell-warning" width="100px">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th colspan="9">Fish</th>
+                    </tr>
+                    <tr>
+                        <th colspan="2" class="cell-name" data-sort="name">
+                            Name
+                        </th>
+                        <th class="cell-location" data-sort="location">
+                            <img style="width: 50px" src="/images/map.png" class="location-map-image" />
+                        </th>
+                        <th class="cell-value" data-sort="value">
+                            <i title="donated" class="nes-icon coin is-medium"></i>
+                        </th>
+                        <th class="cell-size" data-sort="size">
+                            <img class="fish-shadow-image" style="width: 50px" src="/images/fish_shadow.png" />
+                        </th>
+                        <th class="cell-active" data-sort="active">
+                            <label>
+                                <input type="checkbox" checked disabled class="nes-checkbox" />
+                                <span></span>
+                            </label>
+                        </th>
+                        <th class="cell-status" data-sort="status">
+                            <i title="status" class="nes-icon trophy is-medium"></i>
+                        </th>
+                        <th class="cell-action">
+                            Action
+                        </th>
+                        <th class="cell-warning is-warning">
+                            !
+                        </th>
+                    </tr>
+                    <tr id="fish-filter">
+
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
         </div>
-        <table id="fish-table">
-            <thead>
-                <tr>
-                    <th colspan="7">Fish</th>
-                </tr>
-                <tr>
-                    <th class="cell-name">
-                        Name
-                    </th>
-                    <th class="cell-image"></th>
-                    <th class="cell-location">
-                        Location
-                    </th>
-                    <th class="cell-value">
-                        Value
-                    </th>
-                    <th class="cell-size">
-                        Size
-                    </th>
-                    <th class="cell-active">
-                        ◉
-                    </th>
-                    <th class="cell-status">
-                        Status
-                    </th>
-                    <th class="cell-action">
-                        Action
-                    </th>
-                </tr>
-                <tr id="fish-filter">
+        <div id="bug-table-wrapper" class="table-wrapper">
+            <table id="bug-table" class="nes-table is-bordered is-centered">
+                <colgroup>
+                    <col class="cell-name" width="200px">
+                    <col class="cell-image" width="50px">
+                    <col class="cell-location" width="100px">
+                    <col class="cell-value" width="150px">
+                    <col class="cell-active" width="70px">
+                    <col class="cell-status" width="50px">
+                    <col class="cell-action" width="100px">
+                    <col class="cell-warning" width="100px">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th colspan="8">Bugs</th>
+                    </tr>
+                    <tr>
+                        <th colspan="2" width="100px" class="cell-name" data-sort="name">
+                            Name
+                        </th>
+                        <th width="100px" class="cell-location" data-sort="location">
+                            <img style="width: 50px" src="/images/map.png" class="location-map-image" />
+                        </th>
+                        <th width="100px" class="cell-value" data-sort="value">
+                            <i title="donated" class="nes-icon coin is-medium"></i>
+                        </th>
+                        <th width="25px" class="cell-active" data-sort="active">
+                            <label>
+                                <input type="checkbox" checked disabled class="nes-checkbox" />
+                                <span></span>
+                            </label>
+                        </th>
+                        <th width="70px" class="cell-status" data-sort="status">
+                            <i title="status" class="nes-icon trophy is-small"></i>
+                        </th>
+                        <th width="100px" class="cell-action">
+                            Action
+                        </th>
+                        <th width="125px" class="cell-warning is-warning">
+                            !
+                        </th>
+                    </tr>
+                    <tr id="bug-filter">
 
-                </tr>
-            </thead>
-            <tbody>
+                    </tr>
+                </thead>
+                <tbody>
 
-            </tbody>
-        </table>
-        <table id="bug-table">
-            <thead>
-                <tr>
-                    <th colspan="6">Bugs</th>
-                </tr>
-                <tr>
-                    <th class="cell-name">
-                        Name
-                    </th>
-                    <th class="cell-image"></th>
-                    <th class="cell-location">
-                        Location
-                    </th>
-                    <th class="cell-value">
-                        Value
-                    </th>
-                    <th class="cell-active">
-                        ◉
-                    </th>
-                    <th class="cell-status">
-                        Status
-                    </th>
-                    <th class="cell-action">
-                        Action
-                    </th>
-                </tr>
-                <tr id="bug-filter">
+                </tbody>
+            </table>
+        </div>
+        <div id="sea-creature-table-wrapper" class="table-wrapper">
+            <table id="sea-creature-table" class="nes-table is-bordered is-centered">
+                <thead>
+                    <tr>
+                        <th colspan="9">Sea Creatures</th>
+                    </tr>
+                    <tr>
+                        <th colspan="2" class="cell-name" data-sort="name">
+                            Name
+                        </th>
+                        <th class="cell-value" data-sort="value">
+                            <i class="nes-icon coin is-medium"></i>
+                        </th>
+                        <th class="cell-speed" data-sort="speed">
+                            Speed
+                        </th>
+                        <th class="cell-size" data-sort="size">
+                            <img style="width: 50px" src="/images/sea_creature_shadow.png" class="sea-creature-image" />
+                        </th>
+                        <th class="cell-active" data-sort="active">
+                            <label>
+                                <input type="checkbox" checked disabled class="nes-checkbox" />
+                                <span></span>
+                            </label>
+                        </th>
+                        <th class="cell-status" data-sort="status">
+                            <i title="status" class="nes-icon trophy is-medium"></i>
+                        </th>
+                        <th class="cell-action">
+                            Action
+                        </th>
+                        <th class="cell-warning is-warning">
+                            !
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
 
-                </tr>
-            </thead>
-            <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script type="text/javascript" src="acnh.js"></script>
+</body>
 
-            </tbody>
-        </table>
-        <table id="sea-creature-table">
-            <thead>
-                <tr>
-                    <th colspan="7">Sea Creatures</th>
-                </tr>
-                <tr>
-                <th class="cell-name">
-                    Name
-                </th>
-                <th class="cell-image"></th>
-                <th class="cell-value">
-                    Value
-                </th>
-                <th class="cell-speed">
-                    Speed
-                </th>
-                <th class="cell-size">
-                    Size
-                </th>
-                <th class="cell-active">
-                    ◉
-                </th>
-                <th class="cell-status">
-                    Status
-                </th>
-                <th class="cell-action">
-                    Action
-                </th>
-            </tr>
-            </thead>
-            <tbody>
-
-            </tbody>
-        </table>
-        <script type="text/javascript" src="acnh.js"></script>
-    </body>
 </html>

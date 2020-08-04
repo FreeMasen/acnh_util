@@ -23,88 +23,120 @@ impl std::fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-pub async fn get_fish() -> Result<Vec<Fish>> {
+pub async fn get_fish(user_id: i32) -> Result<Vec<Fish>> {
     let conn = CONN.lock().await;
     let mut stmt = conn.prepare("
-    SELECT fish.id, name, price, location, shadow, available_months, available_hours, caught, donated
-    FROM fish")?;
+    SELECT fish.id, name, price, location, shadow, available_months, available_hours, user_status.caught, user_status.donated
+    FROM fish
+    JOIN user_status
+    ON fish.id = user_status.creature_id
+    AND user_status.creature_table = 'fish'
+    AND user_status.user_id = ?")?;
     let stmt_res = stmt
-        .query_and_then(rusqlite::params![], row_to_fish)
+        .query_and_then(rusqlite::params![user_id], row_to_fish)
         .map_err(|e| Error(format!("Error querying fish: {}", e)))?;
     stmt_res.collect()
 }
 
-pub async fn get_bugs() -> Result<Vec<Bug>> {
+pub async fn get_bugs(user_id: i32) -> Result<Vec<Bug>> {
     let conn = CONN.lock().await;
     let mut stmt = conn.prepare(
         "
-    SELECT bugs.id, name, location, price, available_months, available_hours, caught, donated
-    FROM bugs",
+    SELECT bugs.id, name, location, price, available_months, available_hours, user_status.caught, user_status.donated
+    FROM bugs
+    JOIN user_status
+    ON bugs.id = user_status.creature_id
+    AND user_status.creature_table = 'bugs'
+    AND user_status.user_id = ?",
     )?;
     let stmt_iter = stmt
-        .query_and_then(rusqlite::params![], row_to_bug)
+        .query_and_then(rusqlite::params![user_id], row_to_bug)
         .map_err(|e| Error(format!("failed to get bugs: {}", e)))?;
     stmt_iter.collect()
 }
 
-pub async fn get_sea_creatures() -> Result<Vec<SeaCreature>> {
+pub async fn get_sea_creatures(user_id: i32) -> Result<Vec<SeaCreature>> {
     let conn = CONN.lock().await;
     let mut stmt = conn.prepare("
-    SELECT sea_creatures.id, name, shadow_size, speed, price, available_months, available_hours, caught, donated
-    FROM sea_creatures")?;
+    SELECT sea_creatures.id, name, shadow_size, speed, price, available_months, available_hours, user_status.caught, user_status.donated
+    FROM sea_creatures
+    JOIN user_status
+    ON sea_creatures.id = user_status.creature_id
+    AND user_status.creature_table = 'sea_creatures'
+    AND user_status.user_id = ?")?;
     let stmt_iter = stmt
-        .query_and_then(rusqlite::params![], row_to_sea_creature)
+        .query_and_then(rusqlite::params![user_id], row_to_sea_creature)
         .map_err(|e| Error(format!("Error querying sea creatures: {}", e)))?;
     stmt_iter.collect()
 }
 
-pub async fn update_fish(fish: Fish) -> Result<()> {
+pub async fn get_users() -> Result<Vec<User>> {
+    let conn = CONN.lock().await;
+    let mut stmt = conn.prepare("SELECT id, name FROM users")?;
+    let iter = stmt.query_and_then(rusqlite::params![], |r| {
+        Ok(User {
+            user_id: r.get("id")?,
+            name: r.get("name")?
+        })
+    })
+    .map_err(|e| Error(format!("Error querying sea creatures: {}", e)))?;
+    iter.collect()
+}
+
+pub async fn update_fish(user_id: i32, id: i32, caught: bool, donated: bool) -> Result<()> {
     let conn = CONN.lock().await;
     {
         let mut stmt = conn.prepare_cached(
             "
-        UPDATE fish 
+        UPDATE user_status 
         set donated = ?2,
         caught = ?3
-        WHERE id = ?1
+        WHERE creature_id = ?1
+        AND user_id = ?4
+        AND creature_table = 'fish'
         ",
         )?;
-        stmt.execute(rusqlite::params![fish.id, fish.donated, fish.caught])?;
+        stmt.execute(rusqlite::params![id, donated, caught, user_id])?;
     }
     Ok(())
 }
 
-pub async fn update_bug(bug: Bug) -> Result<()> {
+pub async fn update_bug(user_id: i32, id: i32, caught: bool, donated: bool) -> Result<()> {
     let conn = CONN.lock().await;
     {
         let mut stmt = conn.prepare_cached(
             "
-        UPDATE bugs 
+        UPDATE user_status 
         set donated = ?2,
         caught = ?3
-        WHERE bugs.id = ?1
+        WHERE creature_id = ?1
+        user_id = ?4
+        AND creature_table = 'bugs'
         ",
         )?;
-        stmt.execute(rusqlite::params![bug.id, bug.donated, bug.caught])?;
+        stmt.execute(rusqlite::params![id, donated, caught, user_id])?;
     }
     Ok(())
 }
 
-pub async fn update_creature(creature: SeaCreature) -> Result<()> {
+pub async fn update_creature(user_id: i32, creature_id: i32, caught: bool, donated: bool) -> Result<()> {
     let conn = CONN.lock().await;
     {
         let mut stmt = conn.prepare_cached(
             "
-        UPDATE sea_creatures 
+        UPDATE user_status 
         set donated = ?2,
         caught = ?3
-        WHERE id = ?1
+        WHERE creature_id = ?1
+        AND user_id = ?4
+        AND creature_table = 'sea_creatures'
         ",
         )?;
         stmt.execute(rusqlite::params![
-            creature.id,
-            creature.donated,
-            creature.caught
+            creature_id,
+            donated,
+            caught,
+            user_id
         ])?;
     }
     Ok(())
@@ -112,7 +144,7 @@ pub async fn update_creature(creature: SeaCreature) -> Result<()> {
 
 /// Get a full list of fish, bugs and sea creatures that are
 /// available at the current hour in the current month
-pub async fn available_for(hour: u32, month: u32) -> Result<Available> {
+pub async fn available_for(user_id: i32, hour: u32, month: u32) -> Result<Available> {
     println!("hour: {}, month: {}", hour, month);
     // Typical hours are 0 indexed, our hour mask is 1 indexed so we always
     // need to add 1 (eg midnight == 1, 11pm == 24)
@@ -121,26 +153,39 @@ pub async fn available_for(hour: u32, month: u32) -> Result<Available> {
     let fish_stmt = c.prepare("
     SELECT fish.id, name, price, location, shadow, available_months, available_hours, caught, donated
     FROM fish
-        WHERE available_hours & ?1 > 0
-        AND available_months & ?2 > 0
+        JOIN user_status
+        ON fish.id = user_status.creature_id
+        AND user_status.creature_table = 'fish'
+        AND user_status.user_id = ?3
+    WHERE available_hours & ?1 > 0
+    AND available_months & ?2 > 0
+    
     ")?;
-    let fish = execute_and_return(hour, month, fish_stmt, row_to_fish)?;
+    let fish = execute_and_return(hour, month, user_id, fish_stmt, row_to_fish)?;
     let bugs_stmt = c.prepare(
         "
     SELECT bugs.id, name, location, price, available_months, available_hours, caught, donated
     FROM bugs
-        WHERE available_hours & ?1 > 0
-        AND available_months & ?2 > 0
+        JOIN user_status
+        ON bugs.id = user_status.creature_id
+        AND user_status.creature_table = 'bugs'
+        AND user_status.user_id = ?3
+    WHERE available_hours & ?1 > 0
+    AND available_months & ?2 > 0
     ",
     )?;
-    let bugs = execute_and_return(hour, month, bugs_stmt, row_to_bug)?;
+    let bugs = execute_and_return(hour, month, user_id, bugs_stmt, row_to_bug)?;
     let sea_stmt = c.prepare("
     SELECT sea_creatures.id, name, shadow_size, speed, price, available_months, available_hours, caught, donated
     FROM sea_creatures
-        WHERE available_hours & ?1 > 0
-        AND available_months & ?2 > 0
+        JOIN user_status
+        ON sea_creatures.id = user_status.creature_id
+        AND user_status.creature_table = 'sea_creatures'
+        AND user_status.user_id = ?3
+    WHERE available_hours & ?1 > 0
+    AND available_months & ?2 > 0
     ")?;
-    let sea_creatures = execute_and_return(hour, month, sea_stmt, row_to_sea_creature)?;
+    let sea_creatures = execute_and_return(hour, month, user_id, sea_stmt, row_to_sea_creature)?;
 
     Ok(Available {
         fish,
@@ -152,6 +197,7 @@ pub async fn available_for(hour: u32, month: u32) -> Result<Available> {
 fn execute_and_return<T, F>(
     hour: u32,
     month: u32,
+    usr_id: i32,
     mut stmt: rusqlite::Statement,
     f: F,
 ) -> Result<Vec<T>>
@@ -163,7 +209,7 @@ where
     let month = 1 << (month - 1);
     println!("shifted: hour {}, month {}", hour, month);
     let stmt_iter = stmt
-        .query_and_then(params![hour, month], f)
+        .query_and_then(params![hour, month, usr_id], f)
         .map_err(|e| Error(format!("{}", e)))?;
     stmt_iter.collect()
 }
@@ -630,4 +676,10 @@ mod test {
         let revert: T = as_int.into();
         assert_eq!(revert, t)
     }
+}
+
+#[derive(Serialize, Debug)]
+pub struct User {
+    pub user_id: i32,
+    pub name: String,
 }

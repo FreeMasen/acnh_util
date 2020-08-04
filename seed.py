@@ -1,4 +1,4 @@
-import csv, sqlite3, os
+import csv, sqlite3, os, sys
 from functools import reduce
 
 FISH = [
@@ -254,12 +254,14 @@ db_path = os.getenv('ACNH_DATABASE', 'acnh.sqlite')
 
 conn = sqlite3.connect(db_path)
 cur = conn.cursor()
-conn.execute('CREATE TABLE fish          (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT, price INTEGER, location TEXT,        shadow TEXT, available_hours UNSIGNED BIG INT, available_months INTEGER, caught BOOL, donated BOOL)')
-conn.execute('CREATE TABLE bugs          (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT, price INTEGER, location TEXT,                     available_hours UNSIGNED BIG INT, available_months INTEGER, caught BOOL, donated BOOL)')
-conn.execute('CREATE TABLE sea_creatures (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT, price INTEGER, shadow_size INTEGER,  speed TEXT,  available_hours UNSIGNED BIG INT, available_months INTEGER, caught BOOL, donated BOOL)')
-INSERT_FISH =      'INSERT INTO fish          (name, price, available_hours, available_months, location,   shadow,  caught, donated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-INSERT_BUGS =      'INSERT INTO bugs          (name, price, available_hours, available_months, location,            caught, donated) VALUES (?, ?, ?, ?, ?, ?, ?)'
-INSERT_CREATURES = 'INSERT INTO sea_creatures (name, price, available_hours, available_months, shadow_size, speed,  caught, donated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+conn.execute('CREATE TABLE fish          (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT, price INTEGER, location TEXT,        shadow TEXT, available_hours UNSIGNED BIG INT, available_months INTEGER)')
+conn.execute('CREATE TABLE bugs          (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT, price INTEGER, location TEXT,                     available_hours UNSIGNED BIG INT, available_months INTEGER)')
+conn.execute('CREATE TABLE sea_creatures (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT, price INTEGER, shadow_size INTEGER,  speed TEXT,  available_hours UNSIGNED BIG INT, available_months INTEGER)')
+conn.execute('CREATE TABLE users (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT)')
+conn.execute('CREATE TABLE user_status (user_id INTEGER NOT NULL, creature_id INTEGER NOT NULL, creature_table TEXT NOT NULL, caught BOOL NOT NULL DEFAULT 0, donated BOOL NOT NULL DEFAULT 0)')
+INSERT_FISH =      'INSERT INTO fish          (name, price, available_hours, available_months, location,   shadow) VALUES (?, ?, ?, ?, ?, ?)'
+INSERT_BUGS =      'INSERT INTO bugs          (name, price, available_hours, available_months, location) VALUES (?, ?, ?, ?, ?)'
+INSERT_CREATURES = 'INSERT INTO sea_creatures (name, price, available_hours, available_months, shadow_size, speed) VALUES (?, ?, ?, ?, ?, ?)'
 
 
 # Convert a time pair (eg 4 PM - 8 AM) into a
@@ -305,10 +307,6 @@ def params_for(table, d):
     elif table == 'sea_creatures':
         params.append(d['size'])
         params.append(d['speed'])
-    # All insert statements end with caught and donated
-    # which will default to false
-    params.append(False)
-    params.append(False)
     return params
 
 
@@ -320,6 +318,36 @@ for (table, rows, insert) in ACTIVITIES:
         values = ','.join('?' * len(params))
         print(params)
         cur.execute(insert, params)
+
+args = sys.argv;
+users = []
+if len(args) > 1:
+    users = args[1:]
+else:
+    users = ['default']
+
+for user in users:
+    cur.execute(f"INSERT INTO users (name) VALUES ('{user}')")
+    cur.execute(f"SELECT max(id) FROM users WHERE name = '{user}'")
+    user_id = cur.fetchone()[0];
+    print(user_id)
+    cur.execute(f"""INSERT INTO user_status (user_id, creature_id, creature_table)
+                SELECT user_id, creature_id, creature_table 
+                FROM (
+                    SELECT {user_id} as user_id, id as creature_id, 'fish' as creature_table
+                    FROM fish
+
+                    UNION
+
+                    SELECT {user_id} as user_id, id as creature_id, 'bugs' as creature_table
+                    FROM bugs      
+
+                    UNION
+
+                    SELECT {user_id} as user_id, id as creature_id, 'sea_creatures' as creature_table
+                    FROM sea_creatures
+                    
+                )""")
 
 conn.commit()
 conn.close()

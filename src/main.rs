@@ -10,20 +10,26 @@ mod status {
 #[tokio::main]
 async fn main() {
     pretty_env_logger::init();
-    let fish_list = get().and(path("fish")).and_then(|| async {
-        match data::get_fish().await {
+    let user_list = get().and(path!("users")).and_then(|| async {
+        match data::get_users().await {
+            Ok(users) => reply_with_status(Response::Users(users)),
+            Err(e) => reply_with_status(Response::Error(format!("Unable to get users: {}", e))),
+        }
+    });
+    let fish_list = get().and(warp::path!(i32 / "fish")).and_then(|user_id: i32| async move {
+        match data::get_fish(user_id).await {
             Ok(fish) => reply_with_status(Response::Fish(fish)),
             Err(e) => reply_with_status(Response::Error(format!("Unable to get fish: {}", e))),
         }
     });
-    let bug_list = get().and(path("bugs")).and_then(|| async {
-        match data::get_bugs().await {
+    let bug_list = get().and(warp::path!(i32 / "bugs")).and_then(|user_id: i32| async move {
+        match data::get_bugs(user_id).await {
             Ok(bugs) => reply_with_status(Response::Bugs(bugs)),
             Err(e) => reply_with_status(Response::Error(format!("Unable to get fish: {}", e))),
         }
     });
-    let sea_creature_list = get().and(path("sea_creatures")).and_then(|| async {
-        match data::get_sea_creatures().await {
+    let sea_creature_list = get().and(warp::path!(i32 / "sea_creatures")).and_then(|user_id: i32| async move {
+        match data::get_sea_creatures(user_id).await {
             Ok(creatures) => reply_with_status(Response::SeaCreatures(creatures)),
             Err(e) => reply_with_status(Response::Error(format!(
                 "Unable to get sea creatures: {}",
@@ -32,28 +38,43 @@ async fn main() {
         }
     });
     let update_fish = post()
-        .and(warp::path!("update" / "fish"))
+        .and(warp::path!(i32 / "update" / "fish"))
         .and(json())
-        .and_then(|f: data::Fish| async {
-            match data::update_fish(f).await {
+        .and_then(|user_id: i32, b: UpdateBody| async move {
+            let UpdateBody {
+                id,
+                caught,
+                donated
+            } = b;
+            match data::update_fish(user_id, id, caught, donated).await {
                 Ok(_) => reply_with_status(Response::FishUpdated),
                 Err(e) => reply_with_status(Response::Error(format!("Error updating fish: {}", e))),
             }
         });
     let update_bug = post()
-        .and(warp::path!("update" / "bug"))
+        .and(warp::path!(i32 / "update" / "bug"))
         .and(json())
-        .and_then(|b: data::Bug| async {
-            match data::update_bug(b).await {
+        .and_then(|user_id: i32, b: UpdateBody| async move {
+            let UpdateBody {
+                id,
+                caught,
+                donated
+            } = b;
+            match data::update_bug(user_id, id, caught, donated).await {
                 Ok(_) => reply_with_status(Response::BugUpdated),
                 Err(e) => reply_with_status(Response::Error(format!("Error updating bug: {}", e))),
             }
         });
     let update_sea_creatures = post()
-        .and(warp::path!("update" / "sea_creature"))
+        .and(warp::path!(i32 / "update" / "sea_creature"))
         .and(json())
-        .and_then(|s: data::SeaCreature| async {
-            match data::update_creature(s).await {
+        .and_then(|user_id: i32, b: UpdateBody| async move {
+            let UpdateBody {
+                id,
+                caught,
+                donated
+            } = b;
+            match data::update_creature(user_id, id, caught, donated).await {
                 Ok(_) => reply_with_status(Response::SeaCreatureUpdated),
                 Err(e) => reply_with_status(Response::Error(format!(
                     "Error updating sea creature: {}",
@@ -62,9 +83,9 @@ async fn main() {
             }
         });
     let available = get()
-        .and(path!("available" / u32 / u32))
-        .and_then(|hour, month| async move {
-            match data::available_for(hour, month).await {
+        .and(path!(i32 / "available" / u32 / u32))
+        .and_then(|user_id, hour, month| async move {
+            match data::available_for(user_id, hour, month).await {
                 Ok(b) => reply_with_status(Response::AvailableFor(b)),
                 Err(e) => {
                     reply_with_status(Response::Error(format!("Error getting available: {}", e)))
@@ -74,6 +95,7 @@ async fn main() {
     let catch_all = warp::any().and_then(|| async { reply_with_status(Response::NotFound) });
     let p = std::env::var("ACNH_DIR").unwrap_or_else(|_| "public".to_string());
     let routes = dir(p)
+        .or(user_list)
         .or(fish_list)
         .or(bug_list)
         .or(sea_creature_list)
@@ -100,8 +122,16 @@ fn reply_with_status(body: Response) -> Result<impl warp::Reply, std::convert::I
     Ok(warp::reply::with_status(inner, status))
 }
 
+#[derive(serde::Deserialize, Debug)]
+pub struct UpdateBody {
+    id: i32,
+    caught: bool,
+    donated: bool,
+}
+
 #[derive(serde::Serialize, Debug)]
 pub enum Response {
+    Users(Vec<data::User>),
     Fish(Vec<data::Fish>),
     Bugs(Vec<data::Bug>),
     SeaCreatures(Vec<data::SeaCreature>),

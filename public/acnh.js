@@ -6,6 +6,7 @@
         SEA_CREATURE_BODY: document.querySelector('#sea-creature-table tbody'),
         TOGGLE_CAUGHT: document.getElementById('global-toggle-caught'),
         TOGGLE_DONATED: document.getElementById('global-toggle-donated'),
+        USER_LIST: document.getElementById('user-list-wrapper'),
     });
     const SORT_ORDERS = {
         fish: {
@@ -18,12 +19,15 @@
         },
         sea_creatures: {
             key: 'name',
-            deac: true,
+            desc: true,
         },
     }
     let now = new Date(1970, 1, 1);
     let show_caught = (localStorage.getItem('show_caught') || 'true') === 'true';
     let show_donated = (localStorage.getItem('show_donated') || 'true') === 'true';
+    let users = [];
+    let selected_user_id = localStorage.getItem('selected_user_id') || -1;
+    let pending_timeout = null;
     handle_btn_classes(ELEMENTS.TOGGLE_CAUGHT, show_caught);
     handle_btn_classes(ELEMENTS.TOGGLE_DONATED, show_donated);
     ELEMENTS.TOGGLE_CAUGHT.addEventListener('click', async () => {
@@ -39,14 +43,29 @@
         await main();
     });
     function handle_btn_classes(btn, flag) {
+        console.log('handle_btn_classes', btn, flag);
         if (flag) {
-            btn.classList.replace('is-error', 'is-success')
+            btn.classList.add('is-error');
+            btn.classList.remove('is-success');
         } else {
-            btn.classList.replace('is-success', 'is-error')
+            btn.classList.add('is-success');
+            btn.classList.remove('is-error');
         }
     }
     async function main() {
-        let res = await fetch(`/available/${now.getHours()}/${now.getMonth() + 1}`);
+        if (!!pending_timeout) {
+            clearTimeout(pending_timeout);
+            pending_timeout = setTimeout(tick, 1000 * 60)
+        }
+        await get_user_list();
+        if (selected_user_id === -1) {
+            if (users.length === 0) {
+                return;
+            }
+            selected_user_id = users[0].user_id;
+        }
+        render_user_tabs();
+        let res = await fetch(`/${selected_user_id}/available/${now.getHours()}/${now.getMonth() + 1}`);
         if (res.status !== 200) {
             console.error('failed to get active', res);
             return;
@@ -68,6 +87,34 @@
             return false;
         }
         return true;
+    }
+
+    function render_user_tabs() {
+        clear_dom_node(ELEMENTS.USER_LIST);
+        for (const user of users) {
+            let btn = document.createElement('button');
+            btn.dataset.userId = user.user_id;
+            btn.classList.add('nes-btn');
+            if (user.user_id === selected_user_id) {
+                btn.classList.add('is-success');
+            } else {
+                btn.classList.remove('is-success');
+            }
+            btn.innerText = user.name;
+            btn.addEventListener('click', ev => {
+                console.log(ev.currentTarget.dataset)
+                if (!!ev.currentTarget.dataset.userId) {
+                    selected_user_id = parseInt(ev.currentTarget.dataset.userId);
+                    let container = ev.currentTarget.parentElement;
+                    for (let i = 0; i < container.childElementCount; i++) {
+                        container.children[i].classList.remove('is-success');
+                    }
+                    ev.currentTarget.classList.add('is-success');
+                    main().then(() => {});
+                }
+            });
+            ELEMENTS.USER_LIST.appendChild(btn);
+        }
     }
     
     function render_fishes(fish) {
@@ -158,7 +205,12 @@
         caught_btn.addEventListener('click', () => {
             creature.caught = !creature.caught;
             creature.donated = false;
-            fetch(`/update/${kind}`, {method: 'POST', body: JSON.stringify(creature),
+            let update_body = {
+                id: creature.id,
+                caught: creature.caught,
+                donated: creature.donated,
+            };
+            fetch(`${selected_user_id}/update/${kind}`, {method: 'POST', body: JSON.stringify(update_body),
             headers: {'Content-Type': 'application/json'}})
                 .then(main().then(() => {}))
         });
@@ -176,7 +228,12 @@
             donated_btn.classList.add('nes-btn');
             donated_btn.addEventListener('click', () => {
                 creature.donated = !creature.donated;
-                fetch(`/update/${kind}`, {method: 'POST', body: JSON.stringify(creature),
+                let update_body = {
+                    id: creature.id,
+                    caught: creature.caught,
+                    donated: creature.donated,
+                };
+                fetch(`${selected_user_id}/update/${kind}`, {method: 'POST', body: JSON.stringify(update_body),
                 headers: {'Content-Type': 'application/json'}})
                     .then(main().then(() => {}))
             });
@@ -422,7 +479,18 @@
         }
 
     }
+    async function get_user_list() {
+        let r = await fetch('/users');
+        if (r.status != 200) {
+            console.error('failed to get users:', await r.text());
+            return;
+        }
+        let user_raw = await r.json();
+        console.log(user_raw);
+        users = user_raw.Users;
+    }
     function tick() {
+        pending_timeout = null;
         function time_eq(then, now) {
             return now.getFullYear() == then.getFullYear()
             && now.getHours() == then.getHours();
@@ -431,10 +499,10 @@
         if (!time_eq(now, new_now)) {
             now = new_now
             main().then(() => {
-                setTimeout(tick, 1000 * 60);
+                pending_timout = setTimeout(tick, 1000 * 60);
             });
         } else {
-            setTimeout(tick, 1000 * 60);
+            pending_timeout = setTimeout(tick, 1000 * 60);
         }
     }
     tick()

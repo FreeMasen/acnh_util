@@ -1,0 +1,2 @@
+conn.execute('CREATE TABLE users (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name TEXT)')
+conn.execute('CREATE TABLE user_status (user_id INTEGER NOT NULL, creature_id INTEGER NOT NULL, creature_table TEXT NOT NULL)')

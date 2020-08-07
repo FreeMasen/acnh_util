@@ -40,8 +40,7 @@ pub async fn get_fish(user_id: i32) -> Result<Vec<Fish>> {
 
 pub async fn get_bugs(user_id: i32) -> Result<Vec<Bug>> {
     let conn = CONN.lock().await;
-    let mut stmt = conn.prepare(
-        "
+    let mut stmt = conn.prepare("
     SELECT bugs.id, name, location, price, available_months, available_hours, user_status.caught, user_status.donated
     FROM bugs
     JOIN user_status
@@ -110,7 +109,7 @@ pub async fn update_bug(user_id: i32, id: i32, caught: bool, donated: bool) -> R
         set donated = ?2,
         caught = ?3
         WHERE creature_id = ?1
-        user_id = ?4
+        AND user_id = ?4
         AND creature_table = 'bugs'
         ",
         )?;

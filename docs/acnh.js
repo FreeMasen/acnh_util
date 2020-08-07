@@ -313,10 +313,10 @@
     function status_as_text(caught, donated) {
         let ret = '<i title="not caught" class="nes-icon close is-small"></i>';
         if (caught) {
-            ret = '<i title="caught" class="nes-icon trophy is-small"></i>';
+            ret = '<img src="/images/backpack.svg" title="caught" class="nes-icon trophy is-small"></i>';
         }
         if (donated) {
-            ret += '<i title="donated" class="nes-icon coin is-small"></i>';
+            ret += '<img src="/images/owl.svg" title="donated" class="nes-icon coin is-small"></i>';
         }
         return ret;
     }

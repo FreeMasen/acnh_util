@@ -4,6 +4,7 @@
 <head>
     <link type="text/css" rel="stylesheet" href="style.css" />
     <meta charset="utf-8" />
+    <base href="/">
     <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
     <link href="https://unpkg.com/nes.css/css/nes.css" rel="stylesheet" />
 </head>
@@ -12,8 +13,9 @@
     <div class="global-filters">
         <button id="global-toggle-caught" class="nes-btn">Toggle Caught</button>
         <button id="global-toggle-donated" class="nes-btn">Toggle Donated</button>
+        <button id="global-toggle-available" class="nes-btn">Toggle Available</button>
     </div>
-    <div id="user-list-wrapper">
+    <div id="island-list-wrapper">
         
     </div>
     <div id="tables-wrapper">
@@ -39,7 +41,7 @@
                             Name
                         </th>
                         <th class="cell-location" data-sort="location">
-                            <img style="width: 50px" src="/images/map.png" class="location-map-image" />
+                            <img alt="location" style="width: 50px" src="/images/treasure-map.svg" class="location-map-image" />
                         </th>
                         <th class="cell-value" data-sort="value">
                             <i title="donated" class="nes-icon coin is-medium"></i>
@@ -93,7 +95,7 @@
                             Name
                         </th>
                         <th width="100px" class="cell-location" data-sort="location">
-                            <img style="width: 50px" src="/images/map.png" class="location-map-image" />
+                            <img alt="location" style="width: 50px" src="/images/treasure-map.svg" class="location-map-image" />
                         </th>
                         <th width="100px" class="cell-value" data-sort="value">
                             <i title="donated" class="nes-icon coin is-medium"></i>
@@ -165,7 +167,8 @@
             </table>
         </div>
     </div>
-    <script type="text/javascript" src="acnh.js"></script>
+    <script type="module" src="index.js"></script>
+    
 </body>
 
 </html>

@@ -56,6 +56,15 @@ table {
 .cell-action-buttons > button {
     width: 25px;
     padding: 0;
+    position: relative;
+    height: 30px;
+}
+.cell-action-buttons > button > img {
+    -webkit-filter: grayscale(1);
+    filter: grayscale(1);
+    position: absolute;
+    left: -3px;
+    top: 1px;
 }
 
 .cell-action-buttons > button + button {

@@ -532,6 +532,10 @@ class App {
                     lval = App.size_as_number(lhs.size);
                     rval = App.size_as_number(rhs.size);
                     break;
+                case 'status':
+                    lval = App.calculate_status(lhs.caught, lhs.donated);
+                    rval = App.calculate_status(rhs.caught, rhs.donated);
+                    break;
                 default:
                     lval = lhs[key];
                     rval = rhs[key];

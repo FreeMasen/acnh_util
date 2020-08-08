@@ -170,7 +170,7 @@
     </div>
     <script>
         if ('serviceWorker' in navigator && location.protocol.indexOf('https') > -1) {
-            navigator.serviceWorker.register('/acnh_util/serviceWorker.js')
+            navigator.serviceWorker.register('/acnh_util/service-worker.js')
                 .then(() => console.log('successfully registered service worker'))
                 .catch(e => {
                     console.error('error registering service worker', e);

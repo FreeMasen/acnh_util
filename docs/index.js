@@ -521,8 +521,8 @@ class App {
             let lval, rval
             switch (key) {
                 case 'active':
-                    lval = !!this.is_active(lhs);
-                    rval = !!this.is_active(rhs);
+                    lval = +this.is_active(lhs);
+                    rval = +this.is_active(rhs);
                     break;
                 case 'speed':
                     lval = App.speed_as_number(lhs.speed);

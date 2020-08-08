@@ -602,26 +602,44 @@ class Db extends Dexie {
         return this.fish.where('name').equals(name).first();
     }
 
-    async catch_fish(id, caught = true) {
+    async catch_fish(id, caught) {
+        if (caught === void 0) {
+            caught = true;
+        }
         this.catch_resource(this.fish, id, caught);
     }
 
-    async catch_bug(id, caught = true) {
+    async catch_bug(id, caught) {
+        if (caught === void 0) {
+            caught = true;
+        }
         this.catch_resource(this.bugs, id, caught);
     }
     
-    async catch_sea_creature(id, caught = true) {
+    async catch_sea_creature(id, caught) {
+        if (caught === void 0) {
+            caught = true;
+        }
         this.catch_resource(this.sea_creatures, id, caught);
     }
-    async donate_fish(id, donated = true) {
+    async donate_fish(id, donated) {
+        if (donated === void 0) {
+            donated = true;
+        }
         this.donate_resource(this.fish, id, donated);
     }
 
-    async donate_bug(id, donated = true) {
+    async donate_bug(id, donated) {
+        if (donated === void 0) {
+            donated = true;
+        }
         this.donate_resource(this.bugs, id, donated);
     }
 
-    async donate_sea_creature(id, donated = true) {
+    async donate_sea_creature(id, donated) {
+        if (donated === void 0) {
+            donated = true;
+        }
         this.donate_resource(this.sea_creatures, id, donated);
     }
 

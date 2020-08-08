@@ -420,7 +420,6 @@ class App {
         }
         caught_btn.classList.add('nes-btn');
         caught_btn.addEventListener('click', async () => {
-            if (typeof this.selected_island === 'undefined') return;
             creature.caught = !creature.caught;
             creature.donated = false;
             await this.update_creature(kind, creature);
@@ -440,7 +439,6 @@ class App {
             
             donated_btn.classList.add('nes-btn');
             donated_btn.addEventListener('click', async () => {
-                if (typeof this.selected_island === 'undefined') return;
                 creature.donated = !creature.donated;
                 await this.update_creature(kind, creature);
                 await this.render_island_data();
@@ -636,7 +634,7 @@ class Db extends Dexie {
     async get_all(island_id, show_caught, show_donated) {
         let [fish, bugs, sea_creatures] = await Promise.all([
             this.fish.where('island_id').equals(island_id).filter(f => (show_caught || !f.caught) && (show_donated || !f.donated)).toArray(),
-            this.bugs.where('island_id').equals(island_id).filter(f => (show_caught || !f.caught) && (show_donated || !f.donated)).toArray(),,
+            this.bugs.where('island_id').equals(island_id).filter(f => (show_caught || !f.caught) && (show_donated || !f.donated)).toArray(),
             this.sea_creatures.where('island_id').equals(island_id).filter(f => (show_caught || !f.caught) && (show_donated || !f.donated)).toArray(),
         ]);
         return {

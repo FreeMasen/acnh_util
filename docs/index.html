@@ -168,8 +168,12 @@
             </table>
         </div>
     </div>
+    <script>
+        navigator.serviceWorker.register('/acnh_util/service-worker.js', {
+            scope: '/acnh_util'
+        });
+    </script>
     <script type="module" src="/acnh_util/index.js"></script>
-    
 </body>
 
 </html>

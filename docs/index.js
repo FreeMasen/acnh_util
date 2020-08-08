@@ -142,7 +142,7 @@ class App {
             const column = columns[i];
             if (column.dataset.sort !== void 0) {
                 column.addEventListener('click', async () => {
-                    sort_order.name = column.dataset.sort;
+                    sort_order.key = column.dataset.sort;
                     sort_order.desc = !sort_order.desc;
                     await this.render_island_data()
                 });

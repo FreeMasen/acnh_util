@@ -240,7 +240,7 @@ class App {
 
     render_bugs_table(bugs) {
         this.order_collection(bugs, this.sort_orders.bugs.key, this.sort_orders.bugs.desc);
-        App.clear_table(this.sea_creature_table_body);
+        App.clear_table(this.bug_table_body);
         for (const bug of bugs) {
             this.bug_table_body.appendChild(this.render_bug_row(bug));
         }

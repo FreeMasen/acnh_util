@@ -2,7 +2,7 @@ import Dexie from 'https://unpkg.com/dexie@latest/dist/dexie.mjs';
 
 let app;
 
-const URL = (() => {
+const URL_PREFIX = (() => {
     if (location.hostname.includes('github.io')) {
         return '/acnh_util'
     }
@@ -306,7 +306,7 @@ class App {
 
     static generate_image_src(name) {
         let base = name.replace(/[-\s']/g, '').toLowerCase();
-        return `${URL}/images/${base}.png`;
+        return `${URL_PREFIX}/images/${base}.png`;
     }
 
     static speed_as_text(speed) {
@@ -334,10 +334,10 @@ class App {
     static status_as_text(caught, donated) {
         let ret = '';
         if (caught) {
-            ret = `<img src="${URL}/images/backpack.svg" title="caught" />`;
+            ret = `<img src="${URL_PREFIX}/images/backpack.svg" title="caught" />`;
         }
         if (donated) {
-            ret += `<img src="${URL}/images/owl.svg" title="donated" />`;
+            ret += `<img src="${URL_PREFIX}/images/owl.svg" title="donated" />`;
         }
         return ret;
     }
@@ -357,11 +357,10 @@ class App {
         let div = document.createElement('div');
         div.classList.add('cell-action-buttons');
         let caught_btn = document.createElement('button');
-        caught_btn.innerHTML = `<img src="${URL}/images/backpack.svg" title="caught" class="caught-btn-img" />`;
+        caught_btn.innerHTML = `<img src="${URL_PREFIX}/images/backpack.svg" title="caught" class="caught-btn-img" />`;
         caught_btn.title = 'Toggle Caught';
         if (creature.caught) {
             caught_btn.classList.add('is-error');
-            
         } else {
             caught_btn.classList.add('is-success');
         }
@@ -370,28 +369,14 @@ class App {
             if (typeof this.selected_island === 'undefined') return;
             creature.caught = !creature.caught;
             creature.donated = false;
-            switch (kind) {
-                case 'fish': {
-                    await this.db.catch_fish(creature.id, creature.caught);
-                    break;
-                }
-                case 'bug': {
-                    await this.db.catch_bug(creature.id, creature.caught);
-                    break;
-                }
-                
-                case 'sea_creature': {
-                    await this.db.catch_sea_creature(creature.id, creature.caught);
-                    break;
-                }
-            }
+            await this.update_creature(kind, creature);
             await this.render_island_data();
             
         });
         div.appendChild(caught_btn);
         if (creature.caught) {
             let donated_btn = document.createElement('button');
-            donated_btn.innerHTML = `<img src="${URL}/images/owl.svg" alt="donated" class="donated-btn-image" />`;
+            donated_btn.innerHTML = `<img src="${URL_PREFIX}/images/owl.svg" alt="donated" class="donated-btn-image" />`;
             donated_btn.title = 'toggle donated';
             if (creature.donated) {
                 donated_btn.classList.add('is-error');
@@ -403,27 +388,30 @@ class App {
             donated_btn.addEventListener('click', async () => {
                 if (typeof this.selected_island === 'undefined') return;
                 creature.donated = !creature.donated;
-                switch (kind) {
-                    case 'fish': {
-                        await this.db.donate_fish(creature.id, creature.donated);
-                        break;
-                    }
-                    case 'bug': {
-                        await this.db.donate_bug(creature.id, creature.donated);
-                        break;
-                    }
-                    
-                    case 'sea_creature': {
-                        await this.db.donate_sea_creature(creature.id, creature.donated);
-                        break;
-                    }
-                }
+                await this.update_creature(kind, creature);
                 await this.render_island_data();
             });
             div.appendChild(donated_btn);
         }
         td.appendChild(div);
         return td;
+    }
+
+    async update_creature(kind, creature) {
+        switch (kind) {
+            case 'fish': {
+                await this.db.fish.update(creature.id, creature);
+                break;
+            }
+            case 'bug': {
+                await this.db.bugs.update(creature.id, creature);
+                break;
+            }
+            case 'sea_creature': {
+                await this.db.sea_creatures.update(creature.id, creature);
+                break;
+            }
+        }
     }
 
     render_warning_cell(creature) {
@@ -445,8 +433,8 @@ class App {
         let next_hour = creature.hours_active[hour];
         let next_month = creature.hours_active[month];
         
-        const clock_img = `<img class="warning-image" src="${URL}/images/clock.svg" />`;
-        const cal_img = `<img class="warning-image" src="${URL}/images/calendar.svg" />`;
+        const clock_img = `<img class="warning-image" src="${URL_PREFIX}/images/clock.svg" />`;
+        const cal_img = `<img class="warning-image" src="${URL_PREFIX}/images/calendar.svg" />`;
         if (!next_hour && !next_month) {
             title = '"will not be around after hour\nwill not be around next month';
             inner = clock_img + cal_img;
@@ -548,7 +536,7 @@ class Db extends Dexie {
     }
 
     async seed() {
-        const data = await (await fetch(`${URL}/initial_data.json`)).json();
+        const data = await (await fetch(`${URL_PREFIX}/initial_data.json`)).json();
         const island_info = {island_id: 0};
         const fish = data.fish.map(f => Object.assign(f, island_info));
         const bugs = data.bugs.map(b => Object.assign(b, island_info));

@@ -1,6 +1,10 @@
 const CACHE_NAME = 'acnh_util';
+
 self.addEventListener('install', ev => {
-    ev.waitUntil(self.skipWaiting());
+    ev.registerForeignFetch({
+		scopes:['/acnh_util'],
+		origins:['*']
+	})
 });
 self.addEventListener('activate', ev => {
     ev.waitUntil(self.clients.claim());
@@ -8,6 +12,16 @@ self.addEventListener('activate', ev => {
 self.addEventListener('fetch', ev => {
     ev.respondWith(handleFetch(ev));
 });
+self.addEventListener('foreignfetch', ev => {
+	ev.respondWith(handleFetch(ev).then(response => {
+		return {
+			response,
+			origin: ev.origin,
+			headers: ['Content-Type']
+		}
+	}));
+});
+
 async function handleFetch(ev) {
     return fetch(ev.request).then(r => {
         if (!r.ok) {

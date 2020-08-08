@@ -1,3 +1,7 @@
+html, body, pre, code, kbd, samp {
+    font-family: 'Press Start 2P' 'Courier New', Courier, monospace;
+}
+
 table {
     font-size: 12pt;
 }

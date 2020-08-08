@@ -1,40 +1,33 @@
-var CACHE = 'acnh_util';
-
-self.addEventListener('install', function(evt) {
-  evt.waitUntil(precache());
+const CACHE_NAME = 'acnh_util';
+self.addEventListener('install', ev => {
+    ev.waitUntil(self.skipWaiting());
 });
-
-self.addEventListener('fetch', function(evt) {
-  console.log('The service worker is serving the asset.');
-  evt.respondWith(fromCache(evt.request));
-  evt.waitUntil(update(evt.request));
+self.addEventListener('activate', ev => {
+    ev.waitUntil(self.clients.claim());
 });
-
-function precache() {
-  return caches.open(CACHE).then(function (cache) {
-    return cache.addAll([
-      './index.html',
-      './images/*',
-      './index.js',
-      './initial_data.json',
-      './style.css',
-    ]);
-  });
+self.addEventListener('fetch', ev => {
+    ev.respondWith(handleFetch(ev));
+});
+async function handleFetch(ev) {
+    return fetch(ev.request).then(r => {
+        if (!r.ok) {
+            return fallbackResponse(ev.request).then(res => {
+                if (!res) {
+                    return r;
+                }
+                return res;
+            }).catch(() => r);
+        }
+        return self.caches.open(CACHE_NAME).then(cache => {
+            return cache.put(ev.request, r.clone())
+                .then(() => r)
+                .catch(() => r);
+        });
+    })
+    .catch(e => fallbackResponse(ev.request));
 }
 
-function fromCache(request) {
-  return caches.open(CACHE).then(function (cache) {
-    return cache.match(request).then(function (matching) {
-      return matching || Promise.reject('no-match');
-    });
-  });
+async function fallbackResponse(req) {
+    const cache = await self.caches.open(CACHE_NAME);
+    return await cache.match(req);
 }
-
-function update(request) {
-  return caches.open(CACHE).then(function (cache) {
-    return fetch(request).then(function (response) {
-      return cache.put(request, response);
-    });
-  });
-}
-

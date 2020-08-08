@@ -31,7 +31,7 @@ class App {
         })();
         this.show_caught = (localStorage.getItem('show_caught') || 'true') === 'true';
         this.show_donated = (localStorage.getItem('show_donated') || 'true') === 'true';
-        this.show_available = (localStorage.getItem('show_available') || 'true') === 'true';
+        this.show_unavailable = (localStorage.getItem('show_unavailable') || 'true') === 'true';
         this.sort_orders = {
             fish: {
                 key: 'name',
@@ -53,7 +53,7 @@ class App {
         this.sea_creature_table_body = document.querySelector('#sea-creature-table tbody');
         this.global_caught_btn = document.getElementById('global-toggle-caught');
         this.global_donated_btn = document.getElementById('global-toggle-donated');
-        this.global_available_btn = document.getElementById('global-toggle-available');
+        this.global_unavailable_btn = document.getElementById('global-toggle-available');
         this.island_list = document.getElementById('island-list-wrapper');
         this.start().then(() => {
             console.log('started!');
@@ -101,14 +101,14 @@ class App {
             });
             this.handle_global_btn_classes(this.global_donated_btn, this.show_donated, 'Donated');
         }
-        if (!!this.global_available_btn) {
-            this.global_available_btn.addEventListener('click', async() => {
-                this.show_available = !this.show_available;
-                localStorage.setItem('show_available', `${this.show_available}`);
-                this.handle_global_btn_classes(this.global_donated_btn, this.show_available, 'Available');
+        if (!!this.global_unavailable_btn) {
+            this.global_unavailable_btn.addEventListener('click', async() => {
+                this.show_unavailable = !this.show_unavailable;
+                localStorage.setItem('show_unavailable', `${this.show_unavailable}`);
+                this.handle_global_btn_classes(this.global_unavailable_btn, this.show_unavailable, 'Unavailable');
                 await this.render_island_data();
             });
-            this.handle_global_btn_classes(this.global_available_btn, this.show_available, 'Available');
+            this.handle_global_btn_classes(this.global_unavailable_btn, this.show_unavailable, 'Unavailable');
         }
     }
 
@@ -155,7 +155,9 @@ class App {
 
     async render_island_data() {
         let data;
-        if (!this.show_available) {
+        if (this.show_unavailable) {
+            data = await this.db.get_all(this.island_id || 0);
+        } else {
             const {hour, month} = this.current_time = App.get_current_time();
             data = await this.db.get_all_for_time(
                 this.selected_island || 0,
@@ -164,8 +166,6 @@ class App {
                 this.show_caught,
                 this.show_donated
             );
-        } else {
-            data = await this.db.get_all(this.island_id || 0);
         }
         this.render_tables(data);
     }

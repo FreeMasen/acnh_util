@@ -523,13 +523,15 @@ class App {
                 case 'active':
                     lval = !!this.is_active(lhs);
                     rval = !!this.is_active(rhs);
-                break;
+                    break;
                 case 'speed':
                     lval = App.speed_as_number(lhs.speed);
                     rval = App.speed_as_number(rhs.speed);
+                    break;
                 case 'size':
                     lval = App.size_as_number(lhs.size);
                     rval = App.size_as_number(rhs.size);
+                    break;
                 default:
                     lval = lhs[key];
                     rval = rhs[key];

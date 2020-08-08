@@ -15,38 +15,38 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 
-class App {
-    selected_island = (() => {
-        let id_str = localStorage.getItem('selected_island_id');
-        if (!!id_str) {
-            try {
-                return parseInt(id_str);
-            } catch (e) {
-                console.error('invalid id', e)
-            }
-        }
-    })();
-    show_caught = (localStorage.getItem('show_caught') || 'true') === 'true';
-    show_donated = (localStorage.getItem('show_donated') || 'true') === 'true';
-    show_available = (localStorage.getItem('show_available') || 'true') === 'true';
-    sort_orders = {
-        fish: {
-            key: 'name',
-            desc: true,
-        },
-        bugs: {
-            key: 'name',
-            desc: true,
-        },
-        sea_creatures: {
-            key: 'name',
-            desc: true,
-        },
-    };
-    current_time = App.get_current_time();
+class App { 
     constructor(
         db,
     ) {
+        this.selected_island = (() => {
+            let id_str = localStorage.getItem('selected_island_id');
+            if (!!id_str) {
+                try {
+                    return parseInt(id_str);
+                } catch (e) {
+                    console.error('invalid id', e)
+                }
+            }
+        })();
+        this.show_caught = (localStorage.getItem('show_caught') || 'true') === 'true';
+        this.show_donated = (localStorage.getItem('show_donated') || 'true') === 'true';
+        this.show_available = (localStorage.getItem('show_available') || 'true') === 'true';
+        this.sort_orders = {
+            fish: {
+                key: 'name',
+                desc: true,
+            },
+            bugs: {
+                key: 'name',
+                desc: true,
+            },
+            sea_creatures: {
+                key: 'name',
+                desc: true,
+            },
+        };
+        this.current_time = App.get_current_time();
         this.db = db;
         this.fish_table_body = document.querySelector('#fish-table tbody');
         this.bug_table_body = document.querySelector('#bug-table tbody');

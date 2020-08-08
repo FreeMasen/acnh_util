@@ -528,8 +528,8 @@ class App {
                     lval = App.speed_as_number(lhs);
                     rval = App.speed_as_number(rhs);
                 case 'size':
-                    lval = APp.size_as_number(lhs);
-                    rval = APp.size_as_number(rhs);
+                    lval = App.size_as_number(lhs);
+                    rval = App.size_as_number(rhs);
                 default:
                     lval = lhs[key];
                     rval = rhs[key];

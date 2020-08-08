@@ -182,7 +182,8 @@ class App {
     async render_island_data() {
         let data;
         if (this.show_unavailable) {
-            data = await this.db.get_all(this.island_id || 0);
+            data = await this.db.get_all(this.island_id || 0, this.show_caught,
+                this.show_donated);
         } else {
             const {hour, month} = this.current_time = App.get_current_time();
             data = await this.db.get_all_for_time(
@@ -632,11 +633,11 @@ class Db extends Dexie {
         return island.id;
     }
 
-    async get_all(island_id) {
+    async get_all(island_id, show_caught, show_donated) {
         let [fish, bugs, sea_creatures] = await Promise.all([
-            this.fish.toArray(),
-            this.bugs.toArray(),
-            this.sea_creatures.toArray(),
+            this.fish.where('island_id').equals(island_id).filter(f => (show_caught || !f.caught) && (show_donated || !f.donated)).toArray(),
+            this.bugs.where('island_id').equals(island_id).filter(f => (show_caught || !f.caught) && (show_donated || !f.donated)).toArray(),,
+            this.sea_creatures.where('island_id').equals(island_id).filter(f => (show_caught || !f.caught) && (show_donated || !f.donated)).toArray(),
         ]);
         return {
             fish,

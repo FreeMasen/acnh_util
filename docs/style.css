@@ -23,7 +23,9 @@ table {
     justify-content: space-evenly;
     margin: auto;
 }
-
+th.sortable {
+    cursor: pointer;
+}
 .cell-name {
     min-width: 100px;
 }

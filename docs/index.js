@@ -48,8 +48,11 @@ class App {
         };
         this.current_time = App.get_current_time();
         this.db = db;
+        this.fish_table_header = document.querySelector('#fish-table thead');
         this.fish_table_body = document.querySelector('#fish-table tbody');
+        this.bug_table_header = document.querySelector('#bug-table thead');
         this.bug_table_body = document.querySelector('#bug-table tbody');
+        this.sea_creature_table_header = document.querySelector('#sea-creature-table thead');
         this.sea_creature_table_body = document.querySelector('#sea-creature-table tbody');
         this.global_caught_btn = document.getElementById('global-toggle-caught');
         this.global_donated_btn = document.getElementById('global-toggle-donated');
@@ -110,6 +113,15 @@ class App {
             });
             this.handle_global_btn_classes(this.global_unavailable_btn, this.show_unavailable, 'Unavailable');
         }
+        if (!!this.fish_table_header) {
+            this.handle_table_column_sorter(this.fish_table_header, this.sort_orders.fish);
+        }
+        if (!!this.bug_table_header) {
+            this.handle_table_column_sorter(this.bug_table_header, this.sort_orders.bugs);
+        }
+        if (!!this.sea_creature_table_header) {
+            this.handle_table_column_sorter(this.sea_creature_table_header, this.sort_orders.sea_creatures);
+        }
     }
 
     handle_global_btn_classes(btn, flag, name) {
@@ -121,6 +133,20 @@ class App {
             btn.classList.add('is-success');
             btn.classList.remove('is-error');
             btn.innerText = `Show ${name}`;
+        }
+    }
+
+    handle_table_column_sorter(row, sort_order) {
+        let columns = row.querySelectorAll('th');
+        for (let i = 0; i < columns.length; i++) {
+            const column = columns[i];
+            if (column.dataset.sort !== void 0) {
+                column.addEventListener('click', async () => {
+                    sort_order.name = column.dataset.sort;
+                    sort_order.desc = !sort_order.desc;
+                    await this.render_island_data()
+                });
+            }
         }
     }
 
@@ -320,6 +346,18 @@ class App {
         }
     }
 
+    static speed_as_number(speed) {
+        switch (speed) {
+            case 'Stationary': return 1;
+            case 'VerySlow': return 2;
+            case 'Slow': return 3;
+            case 'Medium': return 4;
+            case 'Fast': return 5;
+            case 'VeryFast': return 6;
+            default: return 0
+        }
+    }
+
     static size_as_words(size) {
         switch(size) {
             case 'Small': return 'XS';
@@ -328,6 +366,21 @@ class App {
             case 'ExtraLarge': return 'L';
             case 'Gargantuan': return 'XL';
             case 'Humongous': return 'XXL';
+        }
+    }
+
+    static size_as_number(size) {
+        if (!!size.size) {
+            size = size.size;
+        }
+        switch(size) {
+            case 'Small': return 1;
+            case 'Medium': return 2;
+            case 'Large': return 3;
+            case 'ExtraLarge': return 4;
+            case 'Gargantuan': return 5;
+            case 'Humongous': return 6;
+            default: return 0;
         }
     }
 
@@ -465,8 +518,22 @@ class App {
         desc
     ) {
         collection.sort((lhs, rhs) => {
-            const lval = lhs[key];
-            const rval = rhs[key];
+            let lval, rval
+            switch (key) {
+                case 'active':
+                    lval = !!this.is_active(lhs);
+                    rval = !!this.is_active(rhs);
+                break;
+                case 'speed':
+                    lval = App.speed_as_number(lhs);
+                    rval = App.speed_as_number(rhs);
+                case 'size':
+                    lval = APp.size_as_number(lhs);
+                    rval = APp.size_as_number(rhs);
+                default:
+                    lval = lhs[key];
+                    rval = rhs[key];
+            } 
             const lty = typeof lval;
             const rty = typeof rval;
             if (lty !== rty) {
@@ -481,8 +548,8 @@ class App {
                 r = lval;
             }
             switch (lty) {
-                case 'string': return (l ).localeCompare(r );
-                case 'number': return l  - (r );
+                case 'string': return l.localeCompare(r);
+                case 'number': return l  - r;
                 default: return 0;
             }
         })

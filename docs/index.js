@@ -203,7 +203,7 @@ class App {
     }
 
     render_fish_table(fish) {
-        App.order_collection(fish, this.sort_orders.fish.key, this.sort_orders.fish.desc);
+        this.order_collection(fish, this.sort_orders.fish.key, this.sort_orders.fish.desc);
         App.clear_table(this.fish_table_body);
         for (const f of fish) {
             this.fish_table_body.appendChild(this.render_fish_row(f));
@@ -238,7 +238,7 @@ class App {
     }
 
     render_bugs_table(bugs) {
-        App.order_collection(bugs, this.sort_orders.bugs.key, this.sort_orders.bugs.desc);
+        this.order_collection(bugs, this.sort_orders.bugs.key, this.sort_orders.bugs.desc);
         App.clear_table(this.sea_creature_table_body);
         for (const bug of bugs) {
             this.bug_table_body.appendChild(this.render_bug_row(bug));
@@ -269,7 +269,7 @@ class App {
     }
 
     render_sea_creature_table(sea_creatures) {
-        App.order_collection(sea_creatures, this.sort_orders.sea_creatures.key, this.sort_orders.sea_creatures.desc);
+        this.order_collection(sea_creatures, this.sort_orders.sea_creatures.key, this.sort_orders.sea_creatures.desc);
         App.clear_table(this.sea_creature_table_body);
         for (const creature of sea_creatures) {
             this.sea_creature_table_body.appendChild(this.render_sea_creature_row(creature));
@@ -512,7 +512,7 @@ class App {
         }
     }
 
-    static order_collection(
+    order_collection(
         collection,
         key,
         desc

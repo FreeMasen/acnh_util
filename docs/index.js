@@ -610,8 +610,12 @@ class Db extends Dexie {
     }
 
     async seed() {
+        await this.setup_island(0);
+    }
+
+    async setup_island(island_id) {
         const data = await (await fetch(`${URL_PREFIX}/initial_data.json`)).json();
-        const island_info = {island_id: 0};
+        const island_info = {island_id, caught: false, donated: false};
         const fish = data.fish.map(f => Object.assign(f, island_info));
         const bugs = data.bugs.map(b => Object.assign(b, island_info));
         const sea_creatures = data.sea_creatures.map(c => Object.assign(c, island_info));

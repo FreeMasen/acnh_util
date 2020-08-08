@@ -420,6 +420,7 @@ class App {
         }
         caught_btn.classList.add('nes-btn');
         caught_btn.addEventListener('click', async () => {
+            console.log('pre-update creature', creature);
             creature.caught = !creature.caught;
             creature.donated = false;
             await this.update_creature(kind, creature);
@@ -456,6 +457,7 @@ class App {
                 break;
             }
             case 'bug': {
+                console.log('creature', creature);
                 await this.db.bugs.update(creature.id, creature);
                 break;
             }

@@ -5,11 +5,11 @@
     <link type="text/css" rel="stylesheet" href="style.css" />
     <meta charset="utf-8" />
     <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
-    <link href="/nes.css" rel="stylesheet" />
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link href="/acnh_util/nes.css" rel="stylesheet" />
+    <link rel="icon" type="image/x-icon" href="/acnh_util/images/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/acnh_util/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/acnh_util/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/acnh_util/images/favicon-16x16.png">
 
 </head>
 
@@ -152,14 +152,14 @@
     </div>
     <script>
         if ('serviceWorker' in navigator && location.protocol.indexOf('https') > -1) {
-            navigator.serviceWorker.register('/service-worker.js')
+            navigator.serviceWorker.register('/acnh_util/service-worker.js')
                 .then(() => console.log('successfully registered service worker'))
                 .catch(e => {
                     console.error('error registering service worker', e);
                 });
           }
     </script>
-    <script type="module" src="/index.js"></script>
+    <script type="module" src="/acnh_util/index.js"></script>
 </body>
 
 </html>

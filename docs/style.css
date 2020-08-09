@@ -2,6 +2,10 @@ html, body, pre, code, kbd, samp {
     font-family: 'Press Start 2P' 'Courier New', Courier, monospace;
 }
 
+body {
+    text-align: center;
+}
+
 table {
     font-size: 12pt;
 }
@@ -20,6 +24,12 @@ table {
     max-width: 900px;
 }
 
+tr.unavailable {
+    border-color: grey;
+    color: grey;
+    background-color: bisque;
+}
+
 .global-filters {
     width: 500px;
     display: flex;
@@ -27,9 +37,47 @@ table {
     justify-content: space-evenly;
     margin: auto;
 }
+
+#global-toggle-caught {
+    width: 120px;
+}
+
+
+#global-toggle-donated {
+    width: 140px;
+}
+
+#global-toggle-caught {
+    width: 120px;
+}
+
+#global-toggle-available {
+    width: 200px;
+}
+
+#user-list-wrapper {
+    width: 500px;
+    margin: auto;
+    margin-top: 5px;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    align-content: flex-start;
+}
+
 th.sortable {
     cursor: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAzElEQVRYR+2X0Q6AIAhF5f8/2jYXZkwEjNSVvVUjDpcrGgT7FUkI2D9xRfQETwNIiWO85wfINfQUEyxBG2ArsLwC0jioGt5zFcwF4OYDPi/mBYKm4t0U8ATgRm3ThFoAqkhNgWkA0jJLvaOVSs7j3qMnSgXWBMiWPXe94QqMBMBc1VZIvaTu5u5pQewq0EqNZvIEMCmxAawK0DNkay9QmfFNAJUXfgGgUkLaE7j/h8fnASkxHTz0DGIBMCnBeeM7AArpUd3mz2x3C7wADglA8BcWMZhZAAAAAElFTkSuQmCC) 14 0, pointer;
 }
+
+th {
+    padding: 0px;
+}
+
+.header-emoji {
+    font-size: 24pt;
+}
+
 .cell-name {
     min-width: 100px;
 }
@@ -84,4 +132,48 @@ th.sortable {
 
 .warning-image {
     width: 50px;
+}
+
+#edit-users-list {
+    position: absolute;
+    left: calc(50vw - 250px);
+    width: 500px;
+    display: none;
+    background: white;
+    top: 10px;
+}
+
+#edit-users-list.show {
+    display: block;
+}
+
+#edit-users-list > button {
+    margin-left: calc(100% - 50px);
+    margin-bottom: 15px;
+}
+
+#edit-users-list > ul {
+    list-style: none;
+    text-align: left;
+    width: 100%;
+    padding: 0;
+}
+#edit-users-list > ul > li {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+#edit-users-list > ul > .add-user-btn {
+    margin-left: calc(100% - 156px);
+}
+
+#edit-users-list > ul > li > input {
+    width: 65%;
 }

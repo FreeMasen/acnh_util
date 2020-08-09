@@ -57,7 +57,11 @@ class App {
         this.global_caught_btn = document.getElementById('global-toggle-caught');
         this.global_donated_btn = document.getElementById('global-toggle-donated');
         this.global_unavailable_btn = document.getElementById('global-toggle-available');
-        this.island_list = document.getElementById('island-list-wrapper');
+        this.user_list = document.getElementById('user-list-wrapper');
+        this.edit_users_form = new EditUsersForm(db, async () => {
+            let users = await this.db.get_users();
+            this.render_user_tabs(users);
+        });
         this.start().then(() => {
             console.log('started!');
         }).catch(e => {
@@ -65,13 +69,19 @@ class App {
         });
     }
 
+    updated_selected_user(id) {
+        console.log('updating selected user to', id);
+        this.selected_island = id;
+        localStorage.setItem('selected_island', this.selected_island);
+    }
+
     async start() {
         this.register_click_handlers();
         if (!this.selected_island) {
-            this.selected_island = await this.db.get_island_id('default');
+            const id = await this.db.get_default_user_id();
+            this.updated_selected_user(id);
         }
-        let islands = await this.db.get_islands();
-        this.render_island_tabs(islands);
+        this.render_user_tabs();
         this.render_island_data();
         await this.timeTick();
     }
@@ -150,39 +160,57 @@ class App {
         }
     }
 
-    render_island_tabs(islands) {
-        App.clear_table(this.island_list);
-        for (const island of islands) {
-            let btn = document.createElement('button');
-            btn.dataset.islandId = island.id.toString();
-            btn.classList.add('nes-btn');
-            if (island.id === this.selected_island) {
-                btn.classList.add('is-success');
-            } else {
-                btn.classList.remove('is-success');
-            }
-            btn.innerText = island.name;
-            btn.addEventListener('click',async ev => {
-                let btn = ev.currentTarget ;
-                if (!!btn.dataset.islandId) {
-                    this.selected_island = parseInt(btn.dataset.islandId);
-                    let container = btn.parentElement;
-                    if (!container) return;
-                    for (let i = 0; i < container.childElementCount; i++) {
-                        container.children[i].classList.remove('is-success');
-                    }
-                    btn.classList.add('is-success');
-                }
-                await this.render_island_data();
-            });
-            this.island_list.appendChild(btn);
+    async render_user_tabs() {
+        let users = await this.db.get_users();
+        App.clear_table(this.user_list);
+        for (const user of users) {
+            this.user_list.appendChild(this.render_user_tab(user));
         }
+        this.user_list.appendChild(this.render_edit_users_btn());
+    }
+
+    render_user_tab(user) {
+        let btn = document.createElement('button');
+        btn.dataset.islandId = user.id.toString();
+        btn.classList.add('nes-btn');
+        btn.classList.add('user-btn');
+        if (user.id === this.selected_island) {
+            btn.classList.add('is-success');
+        } else {
+            btn.classList.remove('is-success');
+        }
+        btn.innerText = user.name;
+        btn.addEventListener('click',async ev => {
+            let btn = ev.currentTarget;
+            let container = btn.parentElement;
+            if (!container) return;
+            for (let i = 0; i < container.childElementCount; i++) {
+                container.children[i].classList.remove('is-success');
+            }
+            btn.classList.add('is-success');
+            if (user.id === this.selected_island) {
+                return;
+            }
+            this.updated_selected_user(user.id);
+            await this.render_island_data();
+        });
+        return btn;
+    }
+
+    render_edit_users_btn() {
+        let btn = document.createElement('button');
+        btn.classList.add('nes-btn');
+        btn.innerText = '🖋';
+        btn.addEventListener('click', () => {
+            this.edit_users_form.show();
+        });
+        return btn;
     }
 
     async render_island_data() {
         let data;
         if (this.show_unavailable) {
-            data = await this.db.get_all(this.island_id || 0, this.show_caught,
+            data = await this.db.get_all(this.selected_island || 0, this.show_caught,
                 this.show_donated);
         } else {
             const {hour, month} = this.current_time = App.get_current_time();
@@ -217,23 +245,28 @@ class App {
         tr.dataset.location = f.location;
         tr.dataset.size = App.size_as_number(f.size.size).toString();
         tr.dataset.value = f.value.toString();
-        tr.dataset.active = this.is_active(f).toString();
+        tr.dataset.active = this.is_available(f).toString();
         tr.dataset.status = App.calculate_status(f.caught, f.donated).toString();
         let size_text = App.size_as_words(f.size.size);
         if (f.size.modifier) {
             size_text += ` ${f.size.modifier}`;
+        }
+        if (this.is_available(f)) {
+            tr.classList.add('available');
+        } else {
+            tr.classList.add('unavailable');
+            tr.title = `unavailable until ${this.next_available(f)}`;
         }
         tr.innerHTML = `
         <td class="cell-name">${f.name}</td>
         <td class="cell-image">
             <img src="${App.generate_image_src(f.name)}" class="thumbnail-image nes-avatar" />
         </td>
-        <td class="cell-location">${f.location}</td>
         <td class="cell-value">${f.value}</td>
-        <td class="cell-size">${size_text}</td>
-        <td class="cell-active">${this.active_marker(f)}</td>
-        <td class="cell-status">${App.status_as_text(f.caught, f.donated)}</td>`;
-        tr.appendChild(this.render_action_cell(f, 'fish'));
+        <td class="cell-location">${f.location}</td>
+        <td class="cell-size">${size_text}</td>`;
+        tr.appendChild(this.render_caught_cell(f, 'fish'));
+        tr.appendChild(this.render_donated_cell(f, 'fish'));
         tr.appendChild(this.render_warning_cell(f));
         return tr;
     }
@@ -251,20 +284,22 @@ class App {
         tr.dataset.name = b.name;
         tr.dataset.location = b.location;
         tr.dataset.value = b.value.toString();
-        tr.dataset.active = this.is_active(b).toString();
+        tr.dataset.active = this.is_available(b).toString();
         tr.dataset.status = App.calculate_status(b.caught, b.donated).toString();
-        
+        if (!this.is_available(b)) {
+            tr.classList.add('unavailable');
+            tr.title = `unavailable until ${this.next_available(b)}`;
+        }
         tr.innerHTML = `
         <td class="cell-name">${b.name}</td>
         <td class="cell-image">
             <img src="${App.generate_image_src(b.name)}" class="thumbnail-image" />
         </td>
-        <td class="cell-location">${b.location}</td>
         <td class="cell-value">${b.value}</td>
-        <td class="cell-active">${this.active_marker(b)}</td>
-        <td class="cell-status">${App.status_as_text(b.caught, b.donated)}</td>
+        <td class="cell-location">${b.location}</td>
         `;
-        tr.appendChild(this.render_action_cell(b, 'bug'));
+        tr.appendChild(this.render_caught_cell(b, 'bug'));
+        tr.appendChild(this.render_donated_cell(b, 'bug'));
         tr.appendChild(this.render_warning_cell(b));
         return tr;
     }
@@ -282,9 +317,13 @@ class App {
         tr.dataset.name = c.name;
         tr.dataset.size = c.size;
         tr.dataset.value = `${c.value}`;
-        tr.dataset.active = `${this.is_active(c)}`;
+        tr.dataset.active = `${this.is_available(c)}`;
         tr.dataset.speed = c.speed;
         tr.dataset.status = `${App.calculate_status(c.caught, c.donated)}`;
+        if (!this.is_available(c)) {
+            tr.classList.add('unavailable');
+            tr.title = `unavailable until ${this.next_available(c)}`;
+        }
         tr.innerHTML = `
         <td class="cell-name">${c.name}</td>
         <td class="cell-image">
@@ -292,10 +331,9 @@ class App {
         </td>
         <td class="cell-value">${c.value}</td>
         <td class="cell-speed">${App.speed_as_text(c.speed)}</td>
-        <td class="cell-size">${App.size_as_words(c.size)}</td>
-        <td class="cell-active">${this.active_marker(c)}</td>
-        <td class="cell-status">${App.status_as_text(c.caught, c.donated)}</td>`;
-        tr.appendChild(this.render_action_cell(c, 'sea_creature'));
+        <td class="cell-size">${App.size_as_words(c.size)}</td>`;
+        tr.appendChild(this.render_caught_cell(c, 'sea_creature'));
+        tr.appendChild(this.render_donated_cell(c, 'sea_creature'));
         tr.appendChild(this.render_warning_cell(c));
         return tr;
     }
@@ -312,7 +350,7 @@ class App {
         }
     }
 
-    is_active(creature) {
+    is_available(creature) {
         if (!creature.months_active[this.current_time.month]) {
             return false;
         }
@@ -385,68 +423,66 @@ class App {
         }
     }
 
-    static status_as_text(caught, donated) {
+    static status_as_text(caught, donated, ty) {
         let ret = '';
         if (caught) {
-            ret = `<img src="${URL_PREFIX}/images/backpack.svg" title="caught" />`;
+            ret = `<span title="caught" />${App.caught_marker(ty)}</span>`;
         }
         if (donated) {
-            ret += `<img src="${URL_PREFIX}/images/owl.svg" title="donated" />`;
+            ret += `🦉`;
         }
         return ret;
     }
 
+    static caught_marker(ty) {
+        switch (ty) {
+            case 'fish': return '🎣';
+            case 'bug': return '🥢';
+            default: return '🤿';
+        }
+    }
+
     active_marker(creature) {
         let ret = '<label><input type="checkbox" class="nes-checkbox"';
-        if (this.is_active(creature)) {
+        if (this.is_available(creature)) {
             ret += ' checked';
         }
 
         return ret + ' disabled /><span></span></label>';
     }
 
-    render_action_cell(creature, kind) {
-        let td = document.createElement('td');
-        td.classList.add('cell-action');
-        let div = document.createElement('div');
-        div.classList.add('cell-action-buttons');
-        let caught_btn = document.createElement('button');
-        caught_btn.innerHTML = `<img src="${URL_PREFIX}/images/backpack.svg" title="caught" class="caught-btn-img" />`;
-        caught_btn.title = 'Toggle Caught';
-        if (creature.caught) {
-            caught_btn.classList.add('is-error');
-        } else {
-            caught_btn.classList.add('is-success');
-        }
-        caught_btn.classList.add('nes-btn');
-        caught_btn.addEventListener('click', async () => {
-            console.log('pre-update creature', creature);
+    render_caught_cell(creature, kind) {
+        let td = App.render_checkbox_cell(creature.caught, 'cell-caught');
+        td.querySelector('input').addEventListener('change', async () => {
             creature.caught = !creature.caught;
-            creature.donated = false;
             await this.update_creature(kind, creature);
             await this.render_island_data();
-            
         });
-        div.appendChild(caught_btn);
-        if (creature.caught) {
-            let donated_btn = document.createElement('button');
-            donated_btn.innerHTML = `<img src="${URL_PREFIX}/images/owl.svg" alt="donated" class="donated-btn-image" />`;
-            donated_btn.title = 'toggle donated';
-            if (creature.donated) {
-                donated_btn.classList.add('is-error');
-            } else {
-                donated_btn.classList.add('is-success');
-            }
-            
-            donated_btn.classList.add('nes-btn');
-            donated_btn.addEventListener('click', async () => {
-                creature.donated = !creature.donated;
-                await this.update_creature(kind, creature);
-                await this.render_island_data();
-            });
-            div.appendChild(donated_btn);
+        return td;
+    }
+    render_donated_cell(creature, kind) {
+        let td = App.render_checkbox_cell(creature.donated, 'cell-donated'); 
+        td.querySelector('input').addEventListener('change', async () => {
+            creature.donated = !creature.donated;
+            await this.update_creature(kind, creature);
+            await this.render_island_data();
+        });
+        return td;
+    }
+
+    static render_checkbox_cell(checked, cls) {
+        let td = document.createElement('td');
+        td.classList.add(cls);
+        let label = document.createElement('label');
+        td.appendChild(label);
+        let input = document.createElement('input');
+        input.type = 'checkbox';
+        input.classList.add('nes-checkbox');
+        if (checked) {
+            input.setAttribute('checked', '');
         }
-        td.appendChild(div);
+        label.appendChild(input);
+        label.appendChild(document.createElement('span'));
         return td;
     }
 
@@ -471,7 +507,7 @@ class App {
     render_warning_cell(creature) {
         let td = document.createElement('td');
         td.classList.add('warning-cell');
-        if (!this.is_active(creature)) {
+        if (!this.is_available(creature)) {
             return td;
         }
         let hour = this.current_time.hour + 1;
@@ -487,8 +523,8 @@ class App {
         let next_hour = creature.hours_active[hour];
         let next_month = creature.hours_active[month];
         
-        const clock_img = `<img class="warning-image" src="${URL_PREFIX}/images/clock.svg" />`;
-        const cal_img = `<img class="warning-image" src="${URL_PREFIX}/images/calendar.svg" />`;
+        const clock_img = `⏰`;
+        const cal_img = `🗓`;
         if (!next_hour && !next_month) {
             title = '"will not be around after hour\nwill not be around next month';
             inner = clock_img + cal_img;
@@ -507,6 +543,56 @@ class App {
         return td;
     }
 
+    next_available(c) {
+        if (c.months_active[this.current_time.month]) {
+            for (let i = this.current_time.hour; i < c.hours_active.length; i++) {
+                if (c.hours_active[i]) {
+                    return `Today at ${App.hour_n_to_s(i)}`;
+                }
+            }
+            for (let i = 0; i < this.current_time.hour; i++) {
+                if (c.hours_active[i]) {
+                    return `Tomorrow at ${App.hour_n_to_s(i)}`;
+                }
+            }
+            return;
+        }
+        for (let i = this.current_time.month; i < c.months_active.length; i++) {
+            if (c.months_active[i]) {
+                return `The first of ${App.month_n_to_s(i)}`;
+            }
+        }
+        for (let i = 0; i < this.current_time.month; i++) {
+            if (c.months_active[i]) {
+                return `The first of ${App.month_n_to_s(i)}`;
+            }
+        }
+    }
+
+    static hour_n_to_s(n) {
+        if (n > 12) {
+            return `${n - 12} PM`;
+        }
+        return `${n} AM`;
+    }
+
+    static month_n_to_s(n) {
+        switch (n) {
+            case 0: return 'January';
+            case 1: return 'February';
+            case 2: return 'March';
+            case 3: return 'April';
+            case 4: return 'May';
+            case 5: return 'June';
+            case 6: return 'July';
+            case 7: return 'August';
+            case 8: return 'September';
+            case 9: return 'October';
+            case 10: return 'November';
+            default: return 'December';
+        }
+    }
+
     static clear_table(table) {
         while (!!table.lastChild) {
             table.removeChild(table.lastChild);
@@ -522,8 +608,8 @@ class App {
             let lval, rval
             switch (key) {
                 case 'active':
-                    lval = +this.is_active(lhs);
-                    rval = +this.is_active(rhs);
+                    lval = +this.is_available(lhs);
+                    rval = +this.is_available(rhs);
                     break;
                 case 'speed':
                     lval = App.speed_as_number(lhs.speed);
@@ -572,6 +658,87 @@ class App {
     }
 }
 
+class EditUsersForm {
+    constructor(db, closed_cb) {
+        this.db = db;
+        this.el = document.getElementById('edit-users-list');
+        this.list = null;
+        document.getElementById('close-edit-users-btn').addEventListener('click', () => {
+            this.hide();
+            closed_cb();
+        });
+    }
+    hide() {
+        this.clear_list();
+        this.el.classList.remove('show');
+    }
+    async show() {
+        let users = await this.db.get_users();
+        this.list = this.render_list(users);
+        this.el.appendChild(this.list);
+        this.el.classList.add('show');
+    }
+
+    render_list(users) {
+        this.clear_list();
+        let f = document.createElement('ul');
+        for (const user of users) {
+            f.appendChild(this.render_user_item(user))
+        }
+        f.appendChild(this.render_add_btn());
+        return f;
+    }
+    clear_list() {
+        if (this.list !== null && !!this.list.parentElement) {
+            this.list.parentElement.removeChild(this.list);
+        }
+    }
+
+    render_user_item(user) {
+        let li = document.createElement('li');
+        li.appendChild(this.render_user_name_input(user)); 
+        li.appendChild(this.render_delete_button(user));
+        return li;
+    }
+
+    render_user_name_input(user) {
+        let el = document.createElement('input');
+        el.type = 'text';
+        el.value = user.name;
+        el.addEventListener('change', async (ev) => {
+            console.log('changed', ev);
+            let input = ev.currentTarget;
+            user.name = input.value;
+            await this.db.islands.update(user.id, user);
+        });
+        return el;
+    }
+
+    render_delete_button(user) {
+        let btn = document.createElement('button');
+        btn.innerText = 'Delete';
+        btn.classList.add('nes-btn', 'is-error');
+        btn.addEventListener('click', async () => {
+            if (confirm(`Are you sure you want to delete ${user.name} (${user.id})?`)) {
+                await this.db.remove_user(user.id);
+                await this.show();
+            }
+        });
+        return btn;
+    }
+
+    render_add_btn() {
+        let btn = document.createElement('button');
+        btn.classList.add('nes-btn', 'add-user-btn');
+        btn.innerText = 'Add User';
+        btn.addEventListener('click', async () => {
+            await this.db.setup_user('new user');
+            this.show();
+        });
+        return btn;
+    }
+}
+
 class Db extends Dexie {
     constructor(cb) {
         super("acnh_util");
@@ -610,34 +777,66 @@ class Db extends Dexie {
     }
 
     async seed() {
-        await this.setup_island(0);
+        await this.setup_user('default');
     }
 
-    async setup_island(island_id) {
+    async setup_user(island_name) {
+        let island_id = await this.islands.add({name: island_name});
         const data = await (await fetch(`${URL_PREFIX}/initial_data.json`)).json();
         const island_info = {island_id, caught: false, donated: false};
-        const fish = data.fish.map(f => Object.assign(f, island_info));
-        const bugs = data.bugs.map(b => Object.assign(b, island_info));
-        const sea_creatures = data.sea_creatures.map(c => Object.assign(c, island_info));
-        await Promise.all([
-            this.fish.bulkAdd(fish),
-            this.bugs.bulkAdd(bugs),
-            this.sea_creatures.bulkAdd(sea_creatures),
-            this.islands.add({id: 0, name: 'default'}),
-        ]);
+        const mapper = (c, idx) => {
+            let ret = Object.assign(c, island_info);
+            if (ret.id !== void 0) {
+                delete ret.id;
+            }
+            ret.table_id = idx;
+            return ret;
+        };
+        const fish = data.fish.map(mapper);
+        const bugs = data.bugs.map(mapper);
+        const sea_creatures = data.sea_creatures.map(mapper);
+        await this.fish.bulkAdd(fish).catch(e => {
+            console.error('failed to add fish for ', island_name, island_id, fish);
+            throw e;
+        });
+        await this.bugs.bulkAdd(bugs).catch(e => {
+            console.error('failed to add bugs for ', island_name, island_id, bugs);
+            throw e;
+        });
+        this.sea_creatures.bulkAdd(sea_creatures).catch(e => {
+            console.error('failed to add sea creatures for ', island_name, island_id, sea_creatures);
+            throw e;
+        });
     }
 
-    async get_islands() {
+
+    async remove_user(id) {
+        await this.islands.delete(id);
+        let fids = await this.fish.where('island_id').equals(id).primaryKeys();
+        let bids = await this.bugs.where('island_id').equals(id).primaryKeys();
+        let sids = await this.sea_creatures.where('island_id').equals(id).primaryKeys();
+        await this.fish.bulkDelete(fids);
+        await this.bugs.bulkDelete(bids);
+        await this.sea_creatures.bulkDelete(sids);
+    }
+
+    async get_users() {
         return this.islands.toArray();
     }
 
-    async get_island_id(name) {
+    async get_default_user_id() {
+        const user = await this.islands.toCollection().first();
+        return user.id;
+    }
+
+    async get_user_id(name) {
         const island = await this.islands.filter(i => i.name === name).first();
         if (!island) throw new Error('no island named: ' + name);
         return island.id;
     }
 
     async get_all(island_id, show_caught, show_donated) {
+        console.log('getting all for', island_id);
         let [fish, bugs, sea_creatures] = await Promise.all([
             this.fish.where('island_id').equals(island_id).filter(f => (show_caught || !f.caught) && (show_donated || !f.donated)).toArray(),
             this.bugs.where('island_id').equals(island_id).filter(f => (show_caught || !f.caught) && (show_donated || !f.donated)).toArray(),
@@ -651,6 +850,7 @@ class Db extends Dexie {
     }
 
     async get_all_for_time(island_id, hour, month, include_caught, include_donated) {
+        console.log('getting all for', island_id);
         let [fish, bugs, sea_creatures] = await Promise.all([
             this._get_all_for_time(this.fish, island_id, hour, month, include_caught, include_donated),
             this._get_all_for_time(this.bugs, island_id, hour, month, include_caught, include_donated),

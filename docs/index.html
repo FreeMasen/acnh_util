@@ -5,22 +5,24 @@
     <link type="text/css" rel="stylesheet" href="style.css" />
     <meta charset="utf-8" />
     <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
-    <link href="/acnh_util/nes.css" rel="stylesheet" />
-    <link rel="icon" type="image/x-icon" href="/acnh_util/images/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/acnh_util/images/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/acnh_util/images/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/acnh_util/images/favicon-16x16.png">
+    <link href="/nes.css" rel="stylesheet" />
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
 
 </head>
 
-<body>
+<body style="position:relative;text-align:center;">
+    <h1>ACNH Critter Helper</h1>
+    <h2>Global Filters</h2>
     <div class="global-filters">
         <button id="global-toggle-caught" class="nes-btn">Toggle Caught</button>
         <button id="global-toggle-donated" class="nes-btn">Toggle Donated</button>
         <button id="global-toggle-available" class="nes-btn">Toggle Available</button>
     </div>
-    <div id="island-list-wrapper">
-        
+    <h2>Users</h2>
+    <div id="user-list-wrapper">
     </div>
     <div id="tables-wrapper">
         <div id="fish-table-wrapper" class="table-wrapper">
@@ -28,42 +30,35 @@
                 <colgroup>
                     <col class="cell-name" width="120px">
                     <col class="cell-image" width="50px">
-                    <col class="cell-location" width="50px">
                     <col class="cell-value" width="100px">
+                    <col class="cell-location" width="50px">
                     <col class="cell-size" width="50px">
-                    <col class="cell-active" width="200px">
-                    <col class="cell-status" width="50px">
-                    <col class="cell-action" width="70px">
+                    <col class="cell-caught" width="50px">
+                    <col class="cell-donated" width="50px">
                     <col class="cell-warning" width="100px">
                 </colgroup>
                 <thead>
                     <tr>
-                        <th colspan="9">Fish</th>
+                        <th colspan="8">Fish</th>
                     </tr>
                     <tr>
                         <th colspan="2" class="cell-name sortable" data-sort="name">
                             Name
                         </th>
-                        <th class="cell-location sortable" data-sort="location">
-                            <img alt="location" style="width: 50px" src="/acnh_util/images/treasure-map.svg" class="location-map-image" />
-                        </th>
                         <th class="cell-value sortable" data-sort="value">
-                            <i title="donated" class="nes-icon coin is-medium"></i>
+                            <span title="value" class="header-emoji">🔔</span>
+                        </th>
+                        <th class="cell-location sortable" data-sort="location">
+                            Loc.
                         </th>
                         <th class="cell-size sortable" data-sort="size">
-                            <img class="fish-shadow-image" style="width: 50px" src="/acnh_util/images/fish_shadow.png" />
+                            <img class="fish-shadow-image" style="width: 50px" src="/images/fish_shadow.png" />
                         </th>
-                        <th class="cell-active sortable" data-sort="active">
-                            <label>
-                                <input type="checkbox" checked disabled class="nes-checkbox" />
-                                <span></span>
-                            </label>
+                        <th class="cell-caught sortable" data-sort="status">
+                            caught
                         </th>
-                        <th class="cell-status sortable" data-sort="status">
-                            <i title="status" class="nes-icon trophy is-medium"></i>
-                        </th>
-                        <th class="cell-action">
-                            Action
+                        <th class="cell-donated sortable" data-sort="donated">
+                            donated
                         </th>
                         <th class="cell-warning is-warning">
                             !
@@ -80,45 +75,35 @@
                 <colgroup>
                     <col class="cell-name" width="200px">
                     <col class="cell-image" width="50px">
-                    <col class="cell-location" width="100px">
                     <col class="cell-value" width="150px">
-                    <col class="cell-active" width="70px">
-                    <col class="cell-status" width="50px">
-                    <col class="cell-action" width="100px">
+                    <col class="cell-location" width="100px">
+                    <col class="cell-caught" width="50px">
+                    <col class="cell-donated" width="50px">
                     <col class="cell-warning" width="100px">
                 </colgroup>
                 <thead>
                     <tr>
-                        <th colspan="8">Bugs</th>
+                        <th colspan="7">Bugs</th>
                     </tr>
                     <tr>
                         <th colspan="2" width="100px" class="cell-name sortable" data-sort="name">
                             Name
                         </th>
-                        <th width="100px" class="cell-location sortable" data-sort="location">
-                            <img alt="location" style="width: 50px" src="/acnh_util/images/treasure-map.svg" class="location-map-image" />
-                        </th>
                         <th width="100px" class="cell-value sortable" data-sort="value">
-                            <i title="donated" class="nes-icon coin is-medium"></i>
+                            <span title="value" class="header-emoji">🔔</span>
                         </th>
-                        <th width="25px" class="cell-active sortable" data-sort="active">
-                            <label>
-                                <input type="checkbox" checked disabled class="nes-checkbox" />
-                                <span></span>
-                            </label>
+                        <th width="100px" class="cell-location sortable" data-sort="location">
+                            Loc.
                         </th>
-                        <th width="70px" class="cell-status sortable" data-sort="status">
-                            <i title="status" class="nes-icon trophy is-small"></i>
+                        <th width="25px" class="cell-caught sortable" data-sort="active">
+                            Caught
                         </th>
-                        <th width="100px" class="cell-action">
-                            Action
+                        <th width="70px" class="cell-donated sortable" data-sort="status">
+                            Donated
                         </th>
                         <th width="125px" class="cell-warning is-warning">
                             !
                         </th>
-                    </tr>
-                    <tr id="bug-filter">
-
                     </tr>
                 </thead>
                 <tbody>
@@ -137,25 +122,19 @@
                             Name
                         </th>
                         <th class="cell-value sortable" data-sort="value">
-                            <i class="nes-icon coin is-medium"></i>
+                            <span title="value" class="header-emoji">🔔</span>
                         </th>
                         <th class="cell-speed sortable" data-sort="speed">
                             Speed
                         </th>
                         <th class="cell-size sortable" data-sort="size">
-                            <img style="width: 50px" src="/acnh_util/images/sea_creature_shadow.png" class="sea-creature-image" />
+                            <img style="width: 50px" src="/images/sea_creature_shadow.png" class="sea-creature-image" />
                         </th>
-                        <th class="cell-active sortable" data-sort="active">
-                            <label>
-                                <input type="checkbox" checked disabled class="nes-checkbox" />
-                                <span></span>
-                            </label>
+                        <th class="cell-caught sortable" data-sort="donated">
+                            Caught
                         </th>
-                        <th class="cell-status" data-sort="status">
-                            <i title="status" class="nes-icon trophy is-medium"></i>
-                        </th>
-                        <th class="cell-action">
-                            Action
+                        <th class="cell-donated sortable" data-sort="caught">
+                            Donated
                         </th>
                         <th class="cell-warning is-warning">
                             !
@@ -168,16 +147,19 @@
             </table>
         </div>
     </div>
+    <div id="edit-users-list" class="nes-container">
+        <button id="close-edit-users-btn" class="close-btn is-error nes-btn">X</button>
+    </div>
     <script>
         if ('serviceWorker' in navigator && location.protocol.indexOf('https') > -1) {
-            navigator.serviceWorker.register('/acnh_util/service-worker.js')
+            navigator.serviceWorker.register('/service-worker.js')
                 .then(() => console.log('successfully registered service worker'))
                 .catch(e => {
                     console.error('error registering service worker', e);
                 });
           }
     </script>
-    <script type="module" src="/acnh_util/index.js"></script>
+    <script type="module" src="/index.js"></script>
 </body>
 
 </html>

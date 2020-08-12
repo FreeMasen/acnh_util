@@ -32,18 +32,21 @@ class App {
         this.show_caught = (localStorage.getItem('show_caught') || 'true') === 'true';
         this.show_donated = (localStorage.getItem('show_donated') || 'true') === 'true';
         this.show_unavailable = (localStorage.getItem('show_unavailable') || 'true') === 'true';
-        this.sort_orders = {
+        this.table_info = {
             fish: {
-                key: 'name',
-                desc: true,
+                sort_key: 'name',
+                sort_desc: true,
+                hidden: false,
             },
             bugs: {
-                key: 'name',
-                desc: true,
+                sort_key: 'name',
+                sort_desc: true,
+                hidden: false,
             },
             sea_creatures: {
-                key: 'name',
-                desc: true,
+                sort_key: 'name',
+                sort_desc: true,
+                hidden: false,
             },
         };
         this.current_time = App.get_current_time();
@@ -124,13 +127,22 @@ class App {
             this.handle_global_btn_classes(this.global_unavailable_btn, this.show_unavailable, 'Unavailable');
         }
         if (!!this.fish_table_header) {
-            this.handle_table_column_sorter(this.fish_table_header, this.sort_orders.fish);
+            this.handle_table_column_sorter(this.fish_table_header, this.table_info.fish);
         }
         if (!!this.bug_table_header) {
-            this.handle_table_column_sorter(this.bug_table_header, this.sort_orders.bugs);
+            this.handle_table_column_sorter(this.bug_table_header, this.table_info.bugs);
         }
         if (!!this.sea_creature_table_header) {
-            this.handle_table_column_sorter(this.sea_creature_table_header, this.sort_orders.sea_creatures);
+            this.handle_table_column_sorter(this.sea_creature_table_header, this.table_info.sea_creatures);
+        }
+        const title_rows = document.querySelectorAll('.table-title-row');
+        for (let i = 0; i < title_rows.length; i++) {
+            const row = title_rows[i];
+            row.addEventListener('click', async ev => {
+                let table;
+                this.table_info[row.dataset.tableName].hidden = !this.table_info[row.dataset.tableName].hidden;
+                await this.render_island_data();
+            });
         }
     }
 
@@ -150,10 +162,11 @@ class App {
         let columns = row.querySelectorAll('th');
         for (let i = 0; i < columns.length; i++) {
             const column = columns[i];
+            console.log(column);
             if (column.dataset.sort !== void 0) {
                 column.addEventListener('click', async () => {
-                    sort_order.key = column.dataset.sort;
-                    sort_order.desc = !sort_order.desc;
+                    sort_order.sort_key = column.dataset.sort;
+                    sort_order.sort_desc = !sort_order.sort_desc;
                     await this.render_island_data()
                 });
             }
@@ -180,7 +193,7 @@ class App {
             btn.classList.remove('is-success');
         }
         btn.innerText = user.name;
-        btn.addEventListener('click',async ev => {
+        btn.addEventListener('click', async ev => {
             let btn = ev.currentTarget;
             let container = btn.parentElement;
             if (!container) return;
@@ -232,10 +245,19 @@ class App {
     }
 
     render_fish_table(fish) {
-        this.order_collection(fish, this.sort_orders.fish.key, this.sort_orders.fish.desc);
+        this.order_collection(fish, this.table_info.fish.sort_key, this.table_info.fish.sort_desc);
         App.clear_table(this.fish_table_body);
         for (const f of fish) {
             this.fish_table_body.appendChild(this.render_fish_row(f));
+        }
+        if (!this.fish_table_body.hasChildNodes()) {
+            this.fish_table_body.appendChild(App.render_empty_row(8));
+        }
+        let sort_row = this.fish_table_header.querySelector('.sort-header-row');
+        if (this.table_info.fish.hidden) {
+            sort_row.classList.add('hidden');
+        } else {
+            sort_row.classList.remove('hidden');
         }
     }
 
@@ -246,7 +268,6 @@ class App {
         tr.dataset.size = App.size_as_number(f.size.size).toString();
         tr.dataset.value = f.value.toString();
         tr.dataset.active = this.is_available(f).toString();
-        tr.dataset.status = App.calculate_status(f.caught, f.donated).toString();
         let size_text = App.size_as_words(f.size.size);
         if (f.size.modifier) {
             size_text += ` ${f.size.modifier}`;
@@ -256,6 +277,9 @@ class App {
         } else {
             tr.classList.add('unavailable');
             tr.title = `unavailable until ${this.next_available(f)}`;
+        }
+        if (this.table_info.fish.hidden) {
+            tr.classList.add('hidden')
         }
         tr.innerHTML = `
         <td class="cell-name">${f.name}</td>
@@ -272,10 +296,19 @@ class App {
     }
 
     render_bugs_table(bugs) {
-        this.order_collection(bugs, this.sort_orders.bugs.key, this.sort_orders.bugs.desc);
+        this.order_collection(bugs, this.table_info.bugs.key, this.table_info.bugs.desc);
         App.clear_table(this.bug_table_body);
         for (const bug of bugs) {
             this.bug_table_body.appendChild(this.render_bug_row(bug));
+        }
+        if (!this.bug_table_body.hasChildNodes()) {
+            this.bug_table_body.appendChild(App.render_empty_row(7));
+        }
+        let sort_row = this.bug_table_header.querySelector('.sort-header-row');
+        if (this.table_info.bugs.hidden) {
+            sort_row.classList.add('hidden');
+        } else {
+            sort_row.classList.remove('hidden');
         }
     }
 
@@ -285,10 +318,12 @@ class App {
         tr.dataset.location = b.location;
         tr.dataset.value = b.value.toString();
         tr.dataset.active = this.is_available(b).toString();
-        tr.dataset.status = App.calculate_status(b.caught, b.donated).toString();
         if (!this.is_available(b)) {
             tr.classList.add('unavailable');
             tr.title = `unavailable until ${this.next_available(b)}`;
+        }
+        if (this.table_info.bugs.hidden) {
+            tr.classList.add('hidden')
         }
         tr.innerHTML = `
         <td class="cell-name">${b.name}</td>
@@ -305,10 +340,19 @@ class App {
     }
 
     render_sea_creature_table(sea_creatures) {
-        this.order_collection(sea_creatures, this.sort_orders.sea_creatures.key, this.sort_orders.sea_creatures.desc);
+        this.order_collection(sea_creatures, this.table_info.sea_creatures.key, this.table_info.sea_creatures.desc);
         App.clear_table(this.sea_creature_table_body);
         for (const creature of sea_creatures) {
             this.sea_creature_table_body.appendChild(this.render_sea_creature_row(creature));
+        }
+        if (!this.sea_creature_table_body.hasChildNodes()) {
+            this.sea_creature_table_body.appendChild(App.render_empty_row(8));
+        }
+        let sort_row = this.sea_creature_table_header.querySelector('.sort-header-row');
+        if (this.table_info.sea_creatures.hidden) {
+            sort_row.classList.add('hidden');
+        } else {
+            sort_row.classList.remove('hidden');
         }
     }
 
@@ -319,10 +363,12 @@ class App {
         tr.dataset.value = `${c.value}`;
         tr.dataset.active = `${this.is_available(c)}`;
         tr.dataset.speed = c.speed;
-        tr.dataset.status = `${App.calculate_status(c.caught, c.donated)}`;
         if (!this.is_available(c)) {
             tr.classList.add('unavailable');
             tr.title = `unavailable until ${this.next_available(c)}`;
+        }
+        if (this.table_info.sea_creatures.hidden) {
+            tr.classList.add('hidden')
         }
         tr.innerHTML = `
         <td class="cell-name">${c.name}</td>
@@ -335,6 +381,12 @@ class App {
         tr.appendChild(this.render_caught_cell(c, 'sea_creature'));
         tr.appendChild(this.render_donated_cell(c, 'sea_creature'));
         tr.appendChild(this.render_warning_cell(c));
+        return tr;
+    }
+
+    static render_empty_row(width) {
+        let tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="${width}">Nothing Here!</td>`
         return tr;
     }
 
@@ -358,15 +410,6 @@ class App {
             return false;
         }
         return true;
-    }
-
-    static calculate_status(...vals) {
-        return vals.reduce((acc, v) => {
-            if (v) {
-                return acc + 1;
-            }
-            return acc;
-        }, 0);
     }
 
     static generate_image_src(name) {
@@ -423,25 +466,6 @@ class App {
         }
     }
 
-    static status_as_text(caught, donated, ty) {
-        let ret = '';
-        if (caught) {
-            ret = `<span title="caught" />${App.caught_marker(ty)}</span>`;
-        }
-        if (donated) {
-            ret += `🦉`;
-        }
-        return ret;
-    }
-
-    static caught_marker(ty) {
-        switch (ty) {
-            case 'fish': return '🎣';
-            case 'bug': return '🥢';
-            default: return '🤿';
-        }
-    }
-
     active_marker(creature) {
         let ret = '<label><input type="checkbox" class="nes-checkbox"';
         if (this.is_available(creature)) {
@@ -460,6 +484,7 @@ class App {
         });
         return td;
     }
+
     render_donated_cell(creature, kind) {
         let td = App.render_checkbox_cell(creature.donated, 'cell-donated'); 
         td.querySelector('input').addEventListener('change', async () => {
@@ -619,9 +644,11 @@ class App {
                     lval = App.size_as_number(lhs.size);
                     rval = App.size_as_number(rhs.size);
                     break;
-                case 'status':
-                    lval = App.calculate_status(lhs.caught, lhs.donated);
-                    rval = App.calculate_status(rhs.caught, rhs.donated);
+                case 'caught':
+                case 'donated':
+                    // convert booleans to numbers
+                    lval = +lhs[key];
+                    rval = +rhs[key];
                     break;
                 default:
                     lval = lhs[key];

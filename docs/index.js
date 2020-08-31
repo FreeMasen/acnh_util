@@ -70,6 +70,7 @@ class App {
         }).catch(e => {
             console.error('error starting', e);
         });
+        window.__app = this;
     }
 
     updated_selected_user(id) {
